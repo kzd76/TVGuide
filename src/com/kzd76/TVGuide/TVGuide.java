@@ -1,21 +1,27 @@
 package com.kzd76.TVGuide;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.Toast;
 
 
 public class TVGuide extends Activity {
@@ -34,6 +40,7 @@ public class TVGuide extends Activity {
 	
 	private ProgressDialog progress = null;
 	private ChannelDataRefreshTread chRefreshThread;
+	private TVGuidePreference tvprefs;
 	
 	private static final String localLogTag = "_Main";
 	
@@ -46,6 +53,10 @@ public class TVGuide extends Activity {
         setContentView(R.layout.main);
 		
         favChList = new ArrayList<Channel>();
+        
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		tvprefs = new TVGuidePreference(prefs);
+		
         
         if (checkDB() > 0) {
         	Button btn1 = (Button) findViewById(R.id.button1);
@@ -159,6 +170,10 @@ public class TVGuide extends Activity {
 	private void performDBRefresh() {
 		showDialog(PROGRESS_DIALOG);
 		dba.open();
+		Calendar cal = Calendar.getInstance();
+		DateFormat df = new SimpleDateFormat("yyyy.MM.dd");
+		String beforeDate = df.format(cal.getTime());
+		dba.purgeEvents(beforeDate);
 		Cursor cursor = dba.getOfflineChannels();
 		String[] chIds = new String[cursor.getCount()];
 		int i = 0;
@@ -172,7 +187,8 @@ public class TVGuide extends Activity {
 		//Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Cursor size: " + cursor.getCount() + " / chIds: " + chIds.length);
 		cursor.close();
 		dba.close();
-		chRefreshThread = new ChannelDataRefreshTread(handler, chIds, "ChannelRefreshThread");
+		
+		chRefreshThread = new ChannelDataRefreshTread(handler, chIds, "ChannelRefreshThread", tvprefs);
 		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Thread ID: " + chRefreshThread.getId());
 		chRefreshThread.start();
 	}
@@ -190,7 +206,8 @@ public class TVGuide extends Activity {
 
 	private void getPreferencesWindow() {
 		// TODO Auto-generated method stub
-		
+		Intent i = new Intent(TVGuide.this, PreferencesScreen.class);
+		startActivity(i);
 	}
 	
 	@Override
@@ -230,6 +247,7 @@ public class TVGuide extends Activity {
 			if (ChannelDataRefreshTread.PROGRESS_BAR_DONE_MSG.equals(target)){
 				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Thread finished");
 				dismissDialog(PROGRESS_DIALOG);
+				Toast.makeText(TVGuide.this, "A mûsorújság frissítése megtörtént", Toast.LENGTH_SHORT).show();
 			}
 			if (ChannelDataRefreshTread.PROGRESS_BAR_CHANNEL_MSG.equals(target)){
 				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Channel finished");

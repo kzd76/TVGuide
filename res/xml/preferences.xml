@@ -6,8 +6,8 @@
 			android:title="Műsorújság használata" 
 			android:defaultValue="false" 
 			android:key="offlineMode" 
-			android:summaryOn="A műsorújság funkciók elérhető." 
-			android:summaryOff="A műsorújság funkciók nem elérhető.">
+			android:summaryOn="A műsorújság funkció elérhető." 
+			android:summaryOff="A műsorújság funkció nem elérhető.">
 		</CheckBoxPreference>
 		<ListPreference 
 			android:defaultValue="1" 
@@ -20,18 +20,20 @@
 			android:dependency="offlineMode">
 		</ListPreference>
 		<CheckBoxPreference
-			android:title="Műsorújság használata" 
-			android:defaultValue="false" 
-			android:key="offlineMode" 
-			android:summaryOn="A műsorújság funkciók elérhető." 
-			android:summaryOff="A műsorújság funkciók nem elérhető.">
+			android:title="Programinformáció letöltése" 
+			android:defaultValue="true" 
+			android:key="downloadDescriptions" 
+			android:summaryOn="" 
+			android:summaryOff=""
+			android:dependency="offlineMode">
 		</CheckBoxPreference>
 		<CheckBoxPreference
-			android:title="Műsorújság használata" 
+			android:title="Képek letöltése" 
 			android:defaultValue="false" 
-			android:key="offlineMode" 
-			android:summaryOn="A műsorújság funkciók elérhető." 
-			android:summaryOff="A műsorújság funkciók nem elérhető.">
+			android:key="downloadEventPictures" 
+			android:summaryOn="Vedd figyelembe, hogy ez jelentős adatforgalommal jár!" 
+			android:summaryOff=""
+			android:dependency="downloadDescriptions">
 		</CheckBoxPreference>
 	</PreferenceCategory>
 </PreferenceScreen>

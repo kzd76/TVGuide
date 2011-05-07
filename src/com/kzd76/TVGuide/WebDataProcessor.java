@@ -165,7 +165,7 @@ public class WebDataProcessor {
 		try {
 			String text = getHTTPData(target);
 			
-			ed = processEventDataFromText(header, text);
+			ed = processEventDataFromText(header, text, true);
 			
 			return ed;
 		} catch (Exception e){
@@ -174,7 +174,7 @@ public class WebDataProcessor {
 		}
 	}
 	
-	public final static EventData processEventDataFromText(String header, String receivedText) {
+	public final static EventData processEventDataFromText(String header, String receivedText, boolean downloadImages) {
 		
 		EventData ed = new EventData();
 		final String text = receivedText;
@@ -214,7 +214,7 @@ public class WebDataProcessor {
 			ed.setImageAlt(imgalt);
 			ed.setDesc(eventdesc);
 			
-			if ((imageurl.length() > 0) && (imageurl.indexOf("http://") >= 0)) {
+			if ((imageurl.length() > 0) && (imageurl.indexOf("http://") >= 0) && (downloadImages)) {
 				URL imgurl = new URL(imageurl);
 				HttpURLConnection imgconn = (HttpURLConnection) imgurl.openConnection();
 				imgconn.setDoInput(true);

@@ -327,7 +327,15 @@ public class EventListScreen extends ListActivity {
     	try {
     		
     		EventData ed = WebDataProcessor.processEventData(header, target);
-    		
+    		followTarget(ed);
+    	} catch (Exception e) {
+    		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Error while collecting event data from the WEB");
+    		e.printStackTrace();
+    	}
+    }
+    
+    private void followTarget(EventData ed) {
+    	try{
     		String eventdesc = ed.getDesc();
     		String imgalt = ed.getImageAlt();
     		Bitmap bmp = ed.getImage();
@@ -488,7 +496,24 @@ public class EventListScreen extends ListActivity {
 	        			}
         			} else {
         				// TODO Info "button" action when data is coming from database. Temporarily it is now invisible
-        				iv.setVisibility(View.INVISIBLE);
+        				final EventData eData = ce.getEventData();
+        				if (eData !=null) {
+        					String temp = eData.getDesc() + eData.getInfo();
+        					if (temp.length() > 0) {
+        						iv.setImageResource(R.drawable.information_bw);
+    	        				iv.setClickable(true);
+    	        				iv.setOnClickListener(new View.OnClickListener() {
+    	        					
+    	        					public void onClick(View v) {
+    	        						followTarget(eData);
+    	        					}
+    	        				});
+        					} else {
+        						iv.setVisibility(View.INVISIBLE);
+        					}
+        				} else {
+        					iv.setVisibility(View.INVISIBLE);
+        				}
         			}
         		}
         	}

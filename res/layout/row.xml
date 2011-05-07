@@ -42,7 +42,7 @@
     	<TextView  
 	    	android:layout_width="fill_parent"
     	    android:layout_height="15dip"
-        	android:layout_weight="3" 
+    	    android:layout_weight="3"
         	android:id="@+id/bottomtext"
         	android:singleLine="true"
         	android:ellipsize="marquee"

@@ -125,12 +125,21 @@ public class TVGuideDB {
 		}
 	}
 	
+	public long purgeEvents(String beforeDate){
+		try {
+			return db.delete(Constants.EVTABLE_TABLE_NAME, Constants.EVTABLE_EVENT_DAY + "<\"" + beforeDate + "\"", null);
+		} catch (SQLiteException e) {
+			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Unable to purge events from database! " + e.getMessage());
+			return -1;
+		}
+	}
+	
 	public long storeChannelData(ChannelData chdata) {
 		try {
 			if (chdata != null){
 				String chId = chdata.getChannelId();
 				String event_day = chdata.getEventDay();
-				db.delete(Constants.EVTABLE_TABLE_NAME, Constants.EVTABLE_CHANNEL_ID + "=" + chId, null);
+				db.delete(Constants.EVTABLE_TABLE_NAME, Constants.EVTABLE_CHANNEL_ID + "=" + chId + " and " + Constants.EVTABLE_EVENT_DAY + "=\"" + event_day + "\"", null);
 				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Number of events to be stored in database: " + chdata.getEventCount());
 				
 				ArrayList<ChannelEvent> events = chdata.getEvents();
@@ -218,7 +227,13 @@ public class TVGuideDB {
 						ed.setImage(null);
 					}
 					
-					ed.setTitle(ce.getEventName());
+					if ((ed.getInfo() == null) && (ed.getDesc() == null) && (ed.getImage() == null)) {
+						ed = null;
+					} else {
+						if (ed.getInfo() == null) ed.setInfo("");
+						if (ed.getDesc() == null) ed.setDesc("");
+						ed.setTitle(ce.getEventName());
+					}
 					ce.setEventData(ed);
 					events.add(ce);
 				} while (cursor.moveToNext());
