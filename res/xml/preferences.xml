@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory 
+		android:title="Műsorújság beállítások">
+		<CheckBoxPreference
+			android:title="Műsorújság használata" 
+			android:defaultValue="false" 
+			android:key="offlineMode" 
+			android:summaryOn="A műsorújság funkciók elérhető." 
+			android:summaryOff="A műsorújság funkciók nem elérhető.">
+		</CheckBoxPreference>
+		<ListPreference 
+			android:defaultValue="1" 
+			android:summary="Műsorújság letöltésekor ennyi napot tárol az adatbázis." 
+			android:title="Napok száma" 
+			android:key="daysToDownload" 
+			android:entryValues="@array/listValues" 
+			android:dialogTitle="Napok száma" 
+			android:entries="@array/listArray"
+			android:dependency="offlineMode">
+		</ListPreference>
+		<CheckBoxPreference
+			android:title="Műsorújság használata" 
+			android:defaultValue="false" 
+			android:key="offlineMode" 
+			android:summaryOn="A műsorújság funkciók elérhető." 
+			android:summaryOff="A műsorújság funkciók nem elérhető.">
+		</CheckBoxPreference>
+		<CheckBoxPreference
+			android:title="Műsorújság használata" 
+			android:defaultValue="false" 
+			android:key="offlineMode" 
+			android:summaryOn="A műsorújság funkciók elérhető." 
+			android:summaryOff="A műsorújság funkciók nem elérhető.">
+		</CheckBoxPreference>
+	</PreferenceCategory>
+</PreferenceScreen>

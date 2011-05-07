@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="com.kzd76.TVGuide"
+      android:versionCode="0" android:versionName="0.4.0">
+    <application android:icon="@drawable/icon" android:label="@string/app_name">
+        <activity android:name="TVGuide"
+                  android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".EventListScreen" android:label="@string/app_name"></activity>
+        <activity android:name=".ChannelManager" android:label="@string/app_name"></activity>
+        
+        
+	<!-- Enable this for the widget 
+        <receiver android:name="PorthuWidget">
+			<intent-filter>
+				<action
+					android:name="android.appwidget.action.APPWIDGET_UPDATE"
+				/>
+			</intent-filter>
+			<meta-data
+				android:name="android.appwidget.provider"
+				android:resource="@xml/porthu_widget_info"
+			/>
+		</receiver>
+	-->
+		 
+    </application>
+
+
+
+	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
+	
+	<uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7" />
+	
+</manifest> 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string-array name="listArray">
+		<item>1 nap</item>
+		<item>2 nap</item>
+		<item>3 nap</item>
+		<item>4 nap</item>
+		<item>5 nap</item>
+		<item>6 nap</item>
+		<item>7 nap</item>
+	</string-array>
+	<string-array name="listValues">
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+		<item>4</item>
+		<item>5</item>
+		<item>6</item>
+		<item>7</item>
+	</string-array>
+</resources>

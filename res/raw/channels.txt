@@ -1,0 +1,101 @@
+RTL Klub||5
+TV2||3
+HBO||8
+HBO 2||59
+HBO Comedy||143
+Cinemax||47
+Cinemax 2||60
+Comedy Central||194
+Spektrum||9
+Discovery Channel||83
+m1||1
+m2||2
+Travel Channel||84
+TV Paprika||46
+AXN||42
+Cool||79
+VIASAT3||21
+VIASAT6||164
+#DUNA Televízió||6
+#Duna II. Autonómia||103
+#ATV||15
+#hírTV||10
+#Echo TV||48
+#Hálózat TV||122
+#STORY4||38
+#STORY5||228
+#FEM3||215
+#PRO4||229
+#fixHD||96
+#Reflektor TV||175
+#Zone Club||97
+#Vital TV||129
+#LifeNetwork||212
+#OzoneNetwork||213
+#PAX Tv||115
+#Fõnix TV||114
+#D1 TV||134
+#film+||32
+#film+2||180
+#Filmmúzeum||95
+#Universal Channel||87
+#Cartoon Network / TCM||91
+#Zone Romantica||89
+#AXN SCI-FI||132
+#AXN CRIME||138
+#MGM||139
+#Movies24||162
+#Filmbox||226
+#Filmbox HD||173
+#Filmbox Extra||177
+#Filmbox Extra 1||225
+#Filmbox Family||227
+#Filmbox Plus||224
+#Sorozat+||179
+#National Geographic||14
+#Animal Planet||82
+#deko||20
+#Viasat History||66
+#Viasat Explorer||65
+#Viasat Nature||223
+#Zone Reality||92
+#Discovery Science||85
+#Discovery Travel & Living||86
+#Discovery World||174
+#ID Investigation Discovery||209
+#Nat Geo Wild||141
+#Nat Geo HD||159
+#BBC Entertainment||31
+#DOQ||185
+#HISTORY||182
+#HISTORY HD||181
+#Fishing & Hunting||176
+#Chasse et Peche||57
+#Da Vinci Learning||202
+#AB Moteurs||56
+#Motors||58
+#Sport1||90
+#Sport2||44
+#SportKlub||102
+#Eurosport||94
+#Eurosport 2||37
+#Digi Sport||211
+#Digi Sport Plus||230
+#SportM||214
+#Extreme Sports||98
+#ESPN Classic||36
+#Yacht & Sail||12
+#ESPN America||161
+#Minimax||16
+#Nickelodeon||41
+#Cartoon Network / TCM||91
+#Disney Channel||35
+#Boomerang||77
+#Animax||67
+#KidsCo||151
+#JimJam||197
+#Duck TV||156
+#Babyfirst (English)||170
+#Smile of a child (English)||147
+#Baby TV||69
+#Baby TV (English)||153
