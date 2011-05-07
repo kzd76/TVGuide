@@ -36,4 +36,14 @@
 			android:dependency="downloadDescriptions">
 		</CheckBoxPreference>
 	</PreferenceCategory>
+		<CheckBoxPreference
+			android:title="Képek letöltése" 
+			android:defaultValue="false" 
+			android:key="downloadOnlineImages" 
+			android:summaryOn="Vedd figyelembe, hogy ez jelentős adatforgalommal jár!" 
+			android:summaryOff=""
+			android:dependency="downloadDescriptions">
+		</CheckBoxPreference>
+	<PreferenceCategory android:title="Online beállítások">
+	</PreferenceCategory>
 </PreferenceScreen>

@@ -83,6 +83,7 @@ public class TVGuide extends Activity {
         				i.putExtra("SpinnerVisibility", false);
         				i.putExtra("ChannelName", favChList.get(0).name);
         				i.putExtra("ChannelID", favChList.get(0).id);
+        				i.putExtra("downloadOnlineImages", tvprefs.isDownloadOnlineImages());
         				startActivity(i);
         			}
         		});

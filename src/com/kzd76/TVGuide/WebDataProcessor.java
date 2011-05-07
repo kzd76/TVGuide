@@ -158,14 +158,14 @@ public class WebDataProcessor {
     	return cd;
 	}
 	
-	public final static EventData processEventData(String header, String target){
+	public final static EventData processEventData(String header, String target, boolean downloadImages){
 		//System.out.println("Target URL is: " + target);
 		
 		EventData ed = new EventData();
 		try {
 			String text = getHTTPData(target);
 			
-			ed = processEventDataFromText(header, text, true);
+			ed = processEventDataFromText(header, text, downloadImages);
 			
 			return ed;
 		} catch (Exception e){

@@ -46,6 +46,7 @@ public class EventListScreen extends ListActivity {
 	
 	private boolean online = true;
 	private boolean isSpinnerVisible = true;
+	private boolean isDownloadOnlineImages = false;
 	
 	private static final String localLogTag = "_EventListScreen";
 	
@@ -75,6 +76,8 @@ public class EventListScreen extends ListActivity {
         	} else {
         		this.chId = 0;
         	}
+        	
+        	this.isDownloadOnlineImages = params.getBoolean("downloadOnlineImages");
         }
         
         //Log.d(Constants.LOG_MAIN_TAG + localLogTag,"Spinner: " + this.isSpinnerVisible);
@@ -218,6 +221,7 @@ public class EventListScreen extends ListActivity {
     		online = false;
     		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Data found in database, going offline...");
     	} else {
+    		online = true;
     		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "No data found in database, staying online...");
     	}
     	dba.close();
@@ -326,7 +330,7 @@ public class EventListScreen extends ListActivity {
     private void followTargetOnline(String header, String target) {
     	try {
     		
-    		EventData ed = WebDataProcessor.processEventData(header, target);
+    		EventData ed = WebDataProcessor.processEventData(header, target, isDownloadOnlineImages);
     		followTarget(ed);
     	} catch (Exception e) {
     		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Error while collecting event data from the WEB");
@@ -342,6 +346,9 @@ public class EventListScreen extends ListActivity {
     		String eventtitle = ed.getTitle();
     		String info = ed.getInfo();
     		
+    		if (eventdesc == null) eventdesc = "";
+    		if (info == null) info = "";
+    		
     		if ((eventdesc.length() == 0) && (imgalt.length() == 0) && (bmp == null)) {
     			
     		} else {
@@ -351,7 +358,7 @@ public class EventListScreen extends ListActivity {
     			dialog.setTitle(eventtitle);
     			
     			TextView itxt = (TextView) dialog.findViewById(R.id.infotext);
-    			if (info.length() > 0) {
+    			if ((info != null) && (info.length() > 0)) {
     				itxt.setText(info);
     			} else {
     				itxt.setVisibility(View.GONE);
@@ -495,7 +502,6 @@ public class EventListScreen extends ListActivity {
 	        				iv.setVisibility(View.INVISIBLE);
 	        			}
         			} else {
-        				// TODO Info "button" action when data is coming from database. Temporarily it is now invisible
         				final EventData eData = ce.getEventData();
         				if (eData !=null) {
         					String temp = eData.getDesc() + eData.getInfo();
