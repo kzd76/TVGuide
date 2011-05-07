@@ -1,1 +1,4 @@
 This application is a basic TV guide solution for Android devices.
+
+Changes:
+	2011.05.07: parameter for downloader: days, image and description filter
