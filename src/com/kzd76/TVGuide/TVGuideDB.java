@@ -92,11 +92,27 @@ public class TVGuideDB {
 	
 	public Cursor getTopChannels(int limit){
 		try {
-			Cursor cursor = db.query(Constants.CHTABLE_TABLE_NAME, null, null, null, null, null, null, String.valueOf(limit));
+			String limitText = String.valueOf(limit);
+			//Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Limit is: " + limitText);
+			Cursor cursor = db.query(Constants.CHTABLE_TABLE_NAME, null, null, null, null, null, null, limitText);
 			return cursor;
 		}
 		catch (SQLiteException e) {
 			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Unable to get TOP " + limit + " channels. " + e.getMessage());
+			return null;
+		}
+	}
+	
+	public Cursor getTopOfflineChannels(int limit){
+		try {
+			String limitText = String.valueOf(limit);
+			//Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Limit is: " + limitText);
+			Cursor cursor = db.query(Constants.CHTABLE_TABLE_NAME, null, Constants.CHTABLE_OFFLINE_MARKER + "=\"" + Constants.CHTABLE_OFFLINE_TRUE + "\"", null, null, null, null, limitText);
+			return cursor;
+		}
+		catch (SQLiteException e) {
+			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Unable to get TOP " + limit + " channels. " + e.getMessage());
+			e.printStackTrace();
 			return null;
 		}
 	}
@@ -247,5 +263,49 @@ public class TVGuideDB {
 			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Unable to get channel events from database. " + e.getMessage());
 			return null;
 		}
+	}
+	
+	public String[] getCurrentOfflineEvents(int topN, String eventDay, String currentTime){
+		ArrayList<String> events = new ArrayList<String>();
+		StringBuilder event;
+		String[] result;
+		try {
+			Cursor chcursor;
+			if (topN != 0) {
+				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Selecting top " + topN + " event on " + eventDay + " @ " + currentTime);
+				chcursor = getTopOfflineChannels(topN);
+			} else {
+				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Selecting all offline events on " + eventDay + " @ " + currentTime);
+				chcursor = getOfflineChannels();
+			}
+			
+			if (chcursor.moveToFirst()) {
+				do {
+					event = new StringBuilder();
+					String chId = chcursor.getString(chcursor.getColumnIndex(Constants.CHTABLE_CHANNEL_ID));
+					final String filter = Constants.EVTABLE_CHANNEL_ID + "=\"" + chId + "\" and " + Constants.EVTABLE_EVENT_DAY + "=\"" + eventDay + "\" and " + Constants.EVTABLE_EVENT_START_TIME + "<\"" + currentTime + "\"";
+					Cursor cursor = db.query(Constants.EVTABLE_TABLE_NAME, null, filter, null, null, null, Constants.EVTABLE_EVENT_START_TIME + " desc", "1");
+					if (cursor.moveToFirst()){
+						event.append(chcursor.getString(chcursor.getColumnIndex(Constants.CHTABLE_CHANNEL_NAME)));
+						event.append("@@");
+						event.append(cursor.getString(cursor.getColumnIndex(Constants.EVTABLE_EVENT_START_TIME)));
+						event.append(" ");
+						event.append(cursor.getString(cursor.getColumnIndex(Constants.EVTABLE_EVENT_NAME)));
+						events.add(event.toString());
+					}
+					cursor.close();
+				} while (chcursor.moveToNext());
+			}
+			chcursor.close();
+		} catch (SQLiteException e) {
+			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Unable to collect current events from favourite channels. " + e.getMessage());
+		}
+		if (topN != 0) {
+			result = new String[topN];
+		} else {
+			result = new String[events.size()];
+		}
+		events.toArray(result);
+		return result;
 	}
 }

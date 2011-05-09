@@ -36,6 +36,7 @@
 			android:dependency="downloadDescriptions">
 		</CheckBoxPreference>
 	</PreferenceCategory>
+	<PreferenceCategory android:title="Online beállítások">
 		<CheckBoxPreference
 			android:title="Képek letöltése" 
 			android:defaultValue="false" 
@@ -44,6 +45,5 @@
 			android:summaryOff=""
 			android:dependency="downloadDescriptions">
 		</CheckBoxPreference>
-	<PreferenceCategory android:title="Online beállítások">
 	</PreferenceCategory>
 </PreferenceScreen>

@@ -1,3 +1,4 @@
+0.4.0 - offline mode (event downloading, presentation), parameters for offline downloading
 0.3.0 - channel editor, database handling for channels
 0.2.0 - day selection, event description and picture, early widget version
 0.1.0 - event lists from WEB data, spinner for channel selection

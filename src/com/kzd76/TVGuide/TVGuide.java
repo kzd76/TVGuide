@@ -196,7 +196,9 @@ public class TVGuide extends Activity {
 
 	private void getAboutWindow() {
 		// TODO Auto-generated method stub
-		
+		//sendBroadcast(new Intent(TVGuideWidget.ACTION_UPDATE));
+		Intent i = new Intent(TVGuide.this, AllCurrentOfflineEventsScreen.class);
+		startActivity(i);
 	}
 
 	private void getChannelsWindow() {
@@ -249,6 +251,7 @@ public class TVGuide extends Activity {
 				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Thread finished");
 				dismissDialog(PROGRESS_DIALOG);
 				Toast.makeText(TVGuide.this, "A mûsorújság frissítése megtörtént", Toast.LENGTH_SHORT).show();
+				sendBroadcast(new Intent(TVGuideWidget.ACTION_UPDATE));
 			}
 			if (ChannelDataRefreshTread.PROGRESS_BAR_CHANNEL_MSG.equals(target)){
 				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Channel finished");
