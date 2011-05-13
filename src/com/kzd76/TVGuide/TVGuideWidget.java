@@ -87,7 +87,7 @@ public class TVGuideWidget extends AppWidgetProvider {
 				String[] temp = result[0].split("@@");
 				view.setTextViewText(R.id.widgettopchannel, temp[0]);
 				view.setViewVisibility(R.id.widgettopchannel, View.VISIBLE);
-				view.setTextViewText(R.id.widgettoptext, temp[1]);
+				view.setTextViewText(R.id.widgettoptext, temp[1] + " " + temp[2]);
 				view.setViewVisibility(R.id.widgettoptext, View.VISIBLE);
 			}  else {
 				view.setViewVisibility(R.id.widgettopchannel, View.INVISIBLE);
@@ -98,7 +98,7 @@ public class TVGuideWidget extends AppWidgetProvider {
 				String[] temp = result[1].split("@@");
 				view.setTextViewText(R.id.widgetmiddlechannel, temp[0]);
 				view.setViewVisibility(R.id.widgetmiddlechannel, View.VISIBLE);
-				view.setTextViewText(R.id.widgetmiddletext, temp[1]);
+				view.setTextViewText(R.id.widgetmiddletext, temp[1] + " " + temp[2]);
 				view.setViewVisibility(R.id.widgetmiddletext, View.VISIBLE);
 			}  else {
 				view.setViewVisibility(R.id.widgetmiddlechannel, View.INVISIBLE);
@@ -109,7 +109,7 @@ public class TVGuideWidget extends AppWidgetProvider {
 				String[] temp = result[2].split("@@");
 				view.setTextViewText(R.id.widgetbottomchannel, temp[0]);
 				view.setViewVisibility(R.id.widgetbottomchannel, View.VISIBLE);
-				view.setTextViewText(R.id.widgetbottomtext, temp[1]);
+				view.setTextViewText(R.id.widgetbottomtext, temp[1] + " " + temp[2]);
 				view.setViewVisibility(R.id.widgetbottomtext, View.VISIBLE);
 			} else {
 				view.setViewVisibility(R.id.widgetbottomchannel, View.INVISIBLE);

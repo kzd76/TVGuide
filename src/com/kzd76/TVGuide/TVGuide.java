@@ -241,8 +241,8 @@ public class TVGuide extends Activity {
 			Bundle data = msg.getData();
 			String target = data.getString("Target");
 			if (ChannelDataRefreshTread.PROGRESS_BAR_STATE_MSG.equals(target)) {
-				int pos = msg.arg1;
-				int secpos = msg.arg2;
+				int pos = data.getInt("Pos", 0);
+				int secpos = data.getInt("SecPos", 0);
 				//Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Progress: " + pos);
 				progress.setProgress(pos);
 				progress.setSecondaryProgress(secpos);

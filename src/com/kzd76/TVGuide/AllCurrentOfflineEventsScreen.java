@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 public class AllCurrentOfflineEventsScreen extends ListActivity{
@@ -26,6 +27,11 @@ public class AllCurrentOfflineEventsScreen extends ListActivity{
 	Runnable viewOfflineEvents;
 	
 	private OfflineEventAdapter adapter;
+	private String currentTime;
+	private String eventDay;
+	
+	DateFormat df = new SimpleDateFormat("yyyy.MM.dd");
+	DateFormat tf = new SimpleDateFormat("HH:mm");
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState){
@@ -33,6 +39,13 @@ public class AllCurrentOfflineEventsScreen extends ListActivity{
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
 		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "All current offline events screen started.");
+		
+		Calendar cal = Calendar.getInstance();
+		Date now = cal.getTime();
+		
+		eventDay = df.format(now);
+		currentTime = tf.format(now);
+		
 		
 		dba = new TVGuideDB(this);
 		items = new ArrayList<String>();
@@ -53,13 +66,6 @@ public class AllCurrentOfflineEventsScreen extends ListActivity{
 	}
 	
 	private void getItems(){
-		Calendar cal = Calendar.getInstance();
-		DateFormat df = new SimpleDateFormat("yyyy.MM.dd");
-		DateFormat tf = new SimpleDateFormat("HH:mm");
-		Date now = cal.getTime();
-		
-		String eventDay = df.format(now);
-		String currentTime = tf.format(now);
 		
 		dba.open();
 		String[] result = dba.getCurrentOfflineEvents(0, eventDay, currentTime);
@@ -111,23 +117,57 @@ public class AllCurrentOfflineEventsScreen extends ListActivity{
         	}
         	
         	String item = adapterItems.get(position);
-        	
-        	if (item != null) {
-        		//Log.d(Constants.LOG_MAIN_TAG + localLogTag, ce.getTime() + " - " + ce.getEventName() + " / " + ce.getEventDesc() + "   (" + ce.getEventMore() + ")");
-    			String[] temp = item.split("@@");
-        		final String chName = temp[0];
-    			final String text = temp[1];
-    			
-    			TextView offlineEventChannelTextView = (TextView) v.findViewById(R.id.offlineevent_channel);
-        		TextView offlineEventTextView = (TextView) v.findViewById(R.id.offlineevent_text);
-
-        		if (offlineEventChannelTextView != null) {
-        			offlineEventChannelTextView.setText(chName);        			
-        		}
-        		if (offlineEventTextView != null) {
-        			offlineEventTextView.setText(text);        			
-        		}
+        	try {
+	        	if (item != null) {
+	        		//Log.d(Constants.LOG_MAIN_TAG + localLogTag, ce.getTime() + " - " + ce.getEventName() + " / " + ce.getEventDesc() + "   (" + ce.getEventMore() + ")");
+	    			String[] temp = item.split("@@");
+	    			final String chName = temp[0];
+	    			final String startTime = temp[1];
+	        		final String text = temp[2];
+	    			final String endTime = temp[3];
+	    			
+	    			//Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Input: " + chName + " | " + startTime + " | " + text + " | " + endTime);
+	    			
+	    			TextView offlineEventChannelTextView = (TextView) v.findViewById(R.id.offlineevent_channel);
+	        		TextView offlineEventTextView = (TextView) v.findViewById(R.id.offlineevent_text);
+	        		ProgressBar pb = (ProgressBar) v.findViewById(R.id.progressbar);
+	
+	        		if (offlineEventChannelTextView != null) {
+	        			offlineEventChannelTextView.setText(chName);        			
+	        		}
+	        		if (offlineEventTextView != null) {
+	        			offlineEventTextView.setText(startTime + " " + text);        			
+	        		}
+	        		if (pb != null){
+	        			if (endTime.equals("null")){
+	        				pb.setVisibility(View.INVISIBLE);
+	        			} else {
+	        				Date startDate = tf.parse(startTime);
+	        				Date endDate = tf.parse(endTime);
+	        				Date currentDate = tf.parse(currentTime);
+	        				
+	        				Calendar cal = Calendar.getInstance();
+	        				
+	        				cal.setTime(startDate);
+	        				long start = cal.getTimeInMillis();
+	        				cal.setTime(endDate);
+	        				long end = cal.getTimeInMillis();
+	        				cal.setTime(currentDate);
+	        				long current = cal.getTimeInMillis() - start;
+	        				long length = end - start;
+	        				int progress = (int) Math.round(100 * current / length);
+	        				
+	        				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Progress is: " + progress + " (" + length + " = " + " " + end + " - " + start + ")");
+	        				pb.setSecondaryProgress(progress);
+	        			}
+	        			
+	        		}
+	        	}
+        	} catch (Exception e) {
+        		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Cannot create view for list item: " + item);
+        		e.printStackTrace();
         	}
+        	
         	return v;
         }
 		

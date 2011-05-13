@@ -119,38 +119,55 @@ public class ChannelDataRefreshTread extends Thread{
 							}
 							
 							double e = (100 / channels / days) * evcur / evtot;
-							double f = (dayCounter / days);
-							double dPos = f + (100 / days) * channelCounter / channels;
-							double dSecPos = (f + e + dPos);
+							double f = 100 * channelCounter / channels;
+							double g = (100 / channels) * dayCounter / days;
+							double dPos = f + g;
+							double dSecPos = (e + f + g);
 							
+							//Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Pos: " + e + " + " + f + " + " + g);
 							//Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Calculated pos: " + dPos + " / " + dSecPos);
 							
 							Message msg = handler.obtainMessage();
 							Bundle data = new Bundle();
 							data.putString("Target", PROGRESS_BAR_STATE_MSG);
+							data.putInt("Pos", (int)dPos);
+							data.putInt("SecPos", (int)dSecPos);
 							msg.setData(data);
-							msg.arg1 = (int) Math.round(dPos);
-							msg.arg2 = (int) Math.round(dSecPos);
 							handler.sendMessage(msg);
 							
 							evcur++;
 							
 						}
+					} else {
+						double f = 100 * channelCounter / channels;
+						double g = (100 / channels) * dayCounter / days;
+						double dPos = f + g;
+						
+						//Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Pos: " + f + " + " + g);
+						
+						Message msg = handler.obtainMessage();
+						Bundle data = new Bundle();
+						data.putString("Target", PROGRESS_BAR_STATE_MSG);
+						data.putInt("Pos", (int)dPos);
+						data.putInt("SecPos", 0);
+						msg.setData(data);
+						handler.sendMessage(msg);
 					}
 					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Channel finished");
-					
-					Message msg = handler.obtainMessage();
-					Bundle data = new Bundle();
-					data.putString("Target", PROGRESS_BAR_CHANNEL_MSG);
-					msg.setData(data);
-					msg.obj = cd;
-					handler.sendMessage(msg);
 					
 				} catch (Exception e) {
 					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Error while downloading HTTP data." + e.getMessage()); 
 					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "URL: " + url.toString());
 				}
+				
 			}
+			
+			Message msg = handler.obtainMessage();
+			Bundle data = new Bundle();
+			data.putString("Target", PROGRESS_BAR_CHANNEL_MSG);
+			msg.setData(data);
+			msg.obj = cd;
+			handler.sendMessage(msg);
 			
 			channelCounter++;	//Finally increment channel counter
 			

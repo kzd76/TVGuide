@@ -283,17 +283,26 @@ public class TVGuideDB {
 				do {
 					event = new StringBuilder();
 					String chId = chcursor.getString(chcursor.getColumnIndex(Constants.CHTABLE_CHANNEL_ID));
-					final String filter = Constants.EVTABLE_CHANNEL_ID + "=\"" + chId + "\" and " + Constants.EVTABLE_EVENT_DAY + "=\"" + eventDay + "\" and " + Constants.EVTABLE_EVENT_START_TIME + "<\"" + currentTime + "\"";
-					Cursor cursor = db.query(Constants.EVTABLE_TABLE_NAME, null, filter, null, null, null, Constants.EVTABLE_EVENT_START_TIME + " desc", "1");
-					if (cursor.moveToFirst()){
+					final String prevfilter = Constants.EVTABLE_CHANNEL_ID + "=\"" + chId + "\" and " + Constants.EVTABLE_EVENT_DAY + "=\"" + eventDay + "\" and " + Constants.EVTABLE_EVENT_START_TIME + "<\"" + currentTime + "\"";
+					final String nextfilter = Constants.EVTABLE_CHANNEL_ID + "=\"" + chId + "\" and " + Constants.EVTABLE_EVENT_DAY + "=\"" + eventDay + "\" and " + Constants.EVTABLE_EVENT_START_TIME + ">\"" + currentTime + "\"";
+					Cursor prevcursor = db.query(Constants.EVTABLE_TABLE_NAME, null, prevfilter, null, null, null, Constants.EVTABLE_EVENT_START_TIME + " desc", "1");
+					Cursor nextcursor = db.query(Constants.EVTABLE_TABLE_NAME, null, nextfilter, null, null, null, Constants.EVTABLE_EVENT_START_TIME, "1");
+					if (prevcursor.moveToFirst()){
 						event.append(chcursor.getString(chcursor.getColumnIndex(Constants.CHTABLE_CHANNEL_NAME)));
 						event.append("@@");
-						event.append(cursor.getString(cursor.getColumnIndex(Constants.EVTABLE_EVENT_START_TIME)));
-						event.append(" ");
-						event.append(cursor.getString(cursor.getColumnIndex(Constants.EVTABLE_EVENT_NAME)));
+						event.append(prevcursor.getString(prevcursor.getColumnIndex(Constants.EVTABLE_EVENT_START_TIME)));
+						event.append("@@");
+						event.append(prevcursor.getString(prevcursor.getColumnIndex(Constants.EVTABLE_EVENT_NAME)));
+						event.append("@@");
+						if (nextcursor.moveToFirst()){
+							event.append(nextcursor.getString(nextcursor.getColumnIndex(Constants.EVTABLE_EVENT_START_TIME)));
+						} else {
+							event.append("null");
+						}
 						events.add(event.toString());
 					}
-					cursor.close();
+					prevcursor.close();
+					nextcursor.close();
 				} while (chcursor.moveToNext());
 			}
 			chcursor.close();
