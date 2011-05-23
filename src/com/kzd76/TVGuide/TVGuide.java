@@ -38,11 +38,13 @@ public class TVGuide extends Activity {
 	
 	private ArrayList<Channel> favChList;
 	
-	private ProgressDialog progress = null;
+	private DataTrafficProgressDialog progress = null;
 	private ChannelDataRefreshTread chRefreshThread;
 	private TVGuidePreference tvprefs;
 	
 	private static final String localLogTag = "_Main";
+	
+	private double downloadedAmount = 0;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -217,9 +219,8 @@ public class TVGuide extends Activity {
 	protected Dialog onCreateDialog(int id){
 		switch (id){
 		case PROGRESS_DIALOG:
-			progress = new ProgressDialog(TVGuide.this);
-			progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			progress.setTitle("Adatok letöltése...");
+			progress = new DataTrafficProgressDialog(TVGuide.this, "Adatok letöltése...");
+			progress.setDownloadedUnit(DataTrafficProgressDialog.TrafficUnit.KILOBYTE);
 			progress.setCancelable(false);
 			return progress;
 		default:
@@ -233,6 +234,8 @@ public class TVGuide extends Activity {
 		case PROGRESS_DIALOG:
 			progress.setProgress(0);
 			progress.setSecondaryProgress(0);
+			progress.setDownloadedAmount(0);
+			downloadedAmount = 0;
 		}
 	}
 	
@@ -243,9 +246,14 @@ public class TVGuide extends Activity {
 			if (ChannelDataRefreshTread.PROGRESS_BAR_STATE_MSG.equals(target)) {
 				int pos = data.getInt("Pos", 0);
 				int secpos = data.getInt("SecPos", 0);
+				double amount = data.getDouble("Amount", 0);
+				String statusMsg = data.getString("Status");
+				downloadedAmount = downloadedAmount + amount;
 				//Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Progress: " + pos);
 				progress.setProgress(pos);
 				progress.setSecondaryProgress(secpos);
+				progress.setDownloadedAmount(downloadedAmount);
+				progress.setStatusText(statusMsg);
 			}
 			if (ChannelDataRefreshTread.PROGRESS_BAR_DONE_MSG.equals(target)){
 				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Thread finished");

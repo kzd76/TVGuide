@@ -8,7 +8,7 @@ import android.preference.PreferenceActivity;
 
 public class PreferencesScreen extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 	
-	private static final String localLogTag = "_Preferences";
+	//private static final String localLogTag = "_Preferences";
 	
 	private ListPreference listPref;
 

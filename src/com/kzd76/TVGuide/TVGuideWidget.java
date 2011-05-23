@@ -119,6 +119,7 @@ public class TVGuideWidget extends AppWidgetProvider {
 			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "No valid result set from database. Length is: " + result.length);
 			view.setViewVisibility(R.id.widgettoptext, View.INVISIBLE);
 			view.setViewVisibility(R.id.widgetbottomtext, View.INVISIBLE);
+			view.setViewVisibility(R.id.widgetmiddletext, View.VISIBLE);
 			view.setTextViewText(R.id.widgetmiddletext, "Nincs elérhetõ mûsorújság!");
 		}
 		

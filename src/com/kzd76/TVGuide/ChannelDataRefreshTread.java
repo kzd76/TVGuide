@@ -75,10 +75,14 @@ public class ChannelDataRefreshTread extends Thread{
 			    	}
 			    	urlConnection.disconnect();
 			    	
+			    	int amount = text.length();  
+			    	
 			    	cd = WebDataProcessor.processChannelDataFromText(channelId, dayId, WebDataProcessor.host, text.toString());
 					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "From WebDataProcessor: " + cd.getCaption() + " / " + cd.getEventCount());
 					
 					ArrayList<ChannelEvent> events;
+					
+					String chInfo = cd.getChannelName() + " " + cd.getEventDay();
 					
 					if ((cd != null) && (downloadDescriptions)) {
 						
@@ -112,7 +116,13 @@ public class ChannelDataRefreshTread extends Thread{
 						    		text.append(scanner.nextLine() + NL);
 						    	}
 						    	urlConnection.disconnect();
-								
+						    	
+						    	if (evcur == 0) {
+						    		amount = amount + text.length();
+						    	} else {
+						    		amount = text.length();
+						    	}
+						    	
 								EventData ed = WebDataProcessor.processEventDataFromText(ev.getEventName(), text.toString(), downloadImages);
 								ev.setEventData(ed);
 								
@@ -132,6 +142,8 @@ public class ChannelDataRefreshTread extends Thread{
 							data.putString("Target", PROGRESS_BAR_STATE_MSG);
 							data.putInt("Pos", (int)dPos);
 							data.putInt("SecPos", (int)dSecPos);
+							data.putDouble("Amount", amount / 1024);
+							data.putString("Status", chInfo + "\n" + evcur + "/" + evtot);
 							msg.setData(data);
 							handler.sendMessage(msg);
 							
@@ -150,10 +162,20 @@ public class ChannelDataRefreshTread extends Thread{
 						data.putString("Target", PROGRESS_BAR_STATE_MSG);
 						data.putInt("Pos", (int)dPos);
 						data.putInt("SecPos", 0);
+						data.putDouble("Amount", amount / 1024);
+						data.putString("Status", chInfo);
 						msg.setData(data);
 						handler.sendMessage(msg);
 					}
-					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Channel finished");
+					
+					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Day finished");
+					
+					Message msg = handler.obtainMessage();
+					Bundle data = new Bundle();
+					data.putString("Target", PROGRESS_BAR_CHANNEL_MSG);
+					msg.setData(data);
+					msg.obj = cd;
+					handler.sendMessage(msg);
 					
 				} catch (Exception e) {
 					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Error while downloading HTTP data." + e.getMessage()); 
@@ -162,12 +184,16 @@ public class ChannelDataRefreshTread extends Thread{
 				
 			}
 			
-			Message msg = handler.obtainMessage();
-			Bundle data = new Bundle();
-			data.putString("Target", PROGRESS_BAR_CHANNEL_MSG);
-			msg.setData(data);
-			msg.obj = cd;
-			handler.sendMessage(msg);
+			if (days == 0) {
+				Message msg = handler.obtainMessage();
+				Bundle data = new Bundle();
+				data.putString("Target", PROGRESS_BAR_CHANNEL_MSG);
+				msg.setData(data);
+				msg.obj = cd;
+				handler.sendMessage(msg);
+			}
+			
+			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Channel finished");
 			
 			channelCounter++;	//Finally increment channel counter
 			

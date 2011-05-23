@@ -296,8 +296,10 @@ public class TVGuideDB {
 						event.append("@@");
 						if (nextcursor.moveToFirst()){
 							event.append(nextcursor.getString(nextcursor.getColumnIndex(Constants.EVTABLE_EVENT_START_TIME)));
+							event.append("@@");
+							event.append(nextcursor.getString(nextcursor.getColumnIndex(Constants.EVTABLE_EVENT_NAME)));
 						} else {
-							event.append("null");
+							event.append("null@@null");
 						}
 						events.add(event.toString());
 					}

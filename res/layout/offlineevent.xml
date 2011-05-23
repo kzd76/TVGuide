@@ -39,5 +39,14 @@
 			android:layout_width="150dip"
 			android:layout_height="wrap_content"
 		/>
+		<TextView 
+			android:text="TextView"
+			android:id="@+id/offlinenextevent_text" 
+			android:layout_width="fill_parent" 
+			android:layout_height="wrap_content"
+			android:textColor="#444444"
+			android:textSize="12dip"
+			android:paddingTop="5dip"
+		/>
 	</LinearLayout>
 </LinearLayout>

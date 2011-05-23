@@ -125,11 +125,13 @@ public class AllCurrentOfflineEventsScreen extends ListActivity{
 	    			final String startTime = temp[1];
 	        		final String text = temp[2];
 	    			final String endTime = temp[3];
+	    			final String nextEvent = temp[3] + ": " + temp[4]; 
 	    			
 	    			//Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Input: " + chName + " | " + startTime + " | " + text + " | " + endTime);
 	    			
 	    			TextView offlineEventChannelTextView = (TextView) v.findViewById(R.id.offlineevent_channel);
 	        		TextView offlineEventTextView = (TextView) v.findViewById(R.id.offlineevent_text);
+	        		TextView offlineNextEventTextView = (TextView) v.findViewById(R.id.offlinenextevent_text);
 	        		ProgressBar pb = (ProgressBar) v.findViewById(R.id.progressbar);
 	
 	        		if (offlineEventChannelTextView != null) {
@@ -137,6 +139,9 @@ public class AllCurrentOfflineEventsScreen extends ListActivity{
 	        		}
 	        		if (offlineEventTextView != null) {
 	        			offlineEventTextView.setText(startTime + " " + text);        			
+	        		}
+	        		if ((offlineNextEventTextView != null) && (!nextEvent.equals("null: null"))) {
+	        			offlineNextEventTextView.setText("Következik: " + nextEvent);
 	        		}
 	        		if (pb != null){
 	        			if (endTime.equals("null")){
