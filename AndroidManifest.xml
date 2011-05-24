@@ -26,12 +26,12 @@
 				android:resource="@xml/widget_info"
 			/>
 		</receiver>
+		
+		<service android:name="EventAlarmService"></service>
 		 
     </application>
-
-
-
-	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    
+    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
 	
 	<uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7" />
 	

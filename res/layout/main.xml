@@ -4,7 +4,8 @@
 	android:background="#444444"
 	android:orientation="vertical"
 	android:layout_width="fill_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:id="@+id/main_layout">
     <Button 
     	android:text="Minden" 
     	android:id="@+id/button1" 

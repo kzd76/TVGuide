@@ -82,7 +82,7 @@ public class ChannelDataRefreshTread extends Thread{
 					
 					ArrayList<ChannelEvent> events;
 					
-					String chInfo = cd.getChannelName() + " " + cd.getEventDay();
+					String chInfo = cd.getChannelName() + "\n " + cd.getEventDay();
 					
 					if ((cd != null) && (downloadDescriptions)) {
 						

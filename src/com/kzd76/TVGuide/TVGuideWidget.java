@@ -81,6 +81,7 @@ public class TVGuideWidget extends AppWidgetProvider {
 		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Widget is being updated. Results from database: " + result.length);
 		
 		RemoteViews view = new RemoteViews(context.getPackageName(), R.layout.tvguide_widget);
+		
 		if (result.length == 3) {
 			if (result[0] != null) {
 				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Result[0]: " + result[0]);
@@ -115,6 +116,15 @@ public class TVGuideWidget extends AppWidgetProvider {
 				view.setViewVisibility(R.id.widgetbottomchannel, View.INVISIBLE);
 				view.setViewVisibility(R.id.widgetbottomtext, View.INVISIBLE);
 			}
+			
+			if ((result[0] == null) && (result[1] == null) && (result[2] == null)) {
+				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "No valid result set from database. Length is: " + result.length);
+				view.setViewVisibility(R.id.widgettoptext, View.INVISIBLE);
+				view.setViewVisibility(R.id.widgetbottomtext, View.INVISIBLE);
+				view.setViewVisibility(R.id.widgetmiddletext, View.VISIBLE);
+				view.setTextViewText(R.id.widgetmiddletext, "Nincs elérhetõ mûsorújság!");
+			}
+			
 		} else {
 			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "No valid result set from database. Length is: " + result.length);
 			view.setViewVisibility(R.id.widgettoptext, View.INVISIBLE);

@@ -6,8 +6,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.Dialog;
-import android.app.ProgressDialog;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -21,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 
@@ -46,6 +48,8 @@ public class TVGuide extends Activity {
 	
 	private double downloadedAmount = 0;
 	
+	private PendingIntent pendingIntent;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		
@@ -59,8 +63,7 @@ public class TVGuide extends Activity {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		tvprefs = new TVGuidePreference(prefs);
 		
-        
-        if (checkDB() > 0) {
+		if (checkDB() > 0) {
         	Button btn1 = (Button) findViewById(R.id.button1);
     		Button btn2 = (Button) findViewById(R.id.button2);
     		
@@ -107,6 +110,32 @@ public class TVGuide extends Activity {
         	btn1.setVisibility(View.INVISIBLE);
         	btn2.setVisibility(View.INVISIBLE);
         }
+		
+		Intent intent = new Intent(TVGuide.this, EventAlarmService.class);
+		intent.putExtra("EventTitle", "T.J. Hooker");
+		intent.putExtra("EventDescription", "RTL Klub - 22:20");
+		pendingIntent = PendingIntent.getService(TVGuide.this, 0, intent, 0);
+				
+		Button alarmBtn = new Button(this);
+		alarmBtn.setText("Alarm");
+		alarmBtn.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+				
+				Calendar cal = Calendar.getInstance();
+				cal.setTimeInMillis(System.currentTimeMillis());
+				cal.add(Calendar.SECOND, 10);
+				
+				alarmManager.set(AlarmManager.RTC, cal.getTimeInMillis(), pendingIntent);
+			}
+		});
+		
+		LinearLayout ll = (LinearLayout) findViewById(R.id.main_layout);
+		ll.addView(alarmBtn);
+		
 	}
 	
 	private int checkDB() {
