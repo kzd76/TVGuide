@@ -9,6 +9,7 @@ public class ChannelData {
 	private String eventDay;
 	private String caption;
 	private ArrayList<ChannelEvent> events;
+	private int dataLength;
 	
 	public String getChannelName() {
 		return channelName;
@@ -39,6 +40,12 @@ public class ChannelData {
 	}
 	public void setEvents(ArrayList<ChannelEvent> events) {
 		this.events = events;
+	}
+	public int getDataLength() {
+		return dataLength;
+	}
+	public void setDataLength(int dataLength) {
+		this.dataLength = dataLength;
 	}
 	
 	public String buildCaption(){

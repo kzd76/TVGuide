@@ -9,6 +9,7 @@ public class EventData {
 	private String info;
 	private String desc;
 	private String imageAlt;
+	private int dataLength;
 	
 	public Bitmap getImage() {
 		return image;
@@ -39,6 +40,12 @@ public class EventData {
 	}
 	public void setInfo(String info) {
 		this.info = info;
+	}
+	public int getDataLength() {
+		return dataLength;
+	}
+	public void setDataLength(int dataLength) {
+		this.dataLength = dataLength;
 	}
 	
 }

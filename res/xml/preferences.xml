@@ -1,5 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceScreen android:title="Korlátozások">
+		<PreferenceCategory android:title="Adatforgalmi korlátok">
+			<CheckBoxPreference 
+				android:key="onlineTrafficEnabled" 
+				android:defaultValue="false" 
+				android:summaryOff="Az alkalmazás nem használhat adatkapcsolatot" 
+				android:title="Adatforgalom engedélyezése" 
+				android:summaryOn="Az alkalmazás használhatja az internet kapcsolatot">
+			</CheckBoxPreference>
+			<CheckBoxPreference 
+				android:key="onlyWifi" 
+				android:summaryOff="Bármilyen elérhető kapcsolaton keresztül történhet letöltés" 
+				android:title="Csak WiFi" 
+				android:summaryOn="Kizárólag WiFi kapcsolaton keresztül történik letöltés"
+				android:dependency="onlineTrafficEnabled">
+			</CheckBoxPreference>
+			<CheckBoxPreference 
+				android:key="eventsWhenOffline" 
+				android:defaultValue="true" 
+				android:summaryOff="Letöltés engedélyezése, ha nincs tárolt programinformáció" 
+				android:title="Programinformáció korlátozása" 
+				android:summaryOn="Tárolt műsorújság esetén leírás csak adatbázisból"
+				android:dependency="onlineTrafficEnabled">
+			</CheckBoxPreference>
+		</PreferenceCategory>
+	</PreferenceScreen>
 	<PreferenceCategory 
 		android:title="Műsorújság beállítások">
 		<CheckBoxPreference
@@ -43,7 +69,7 @@
 			android:key="downloadOnlineImages" 
 			android:summaryOn="Vedd figyelembe, hogy ez jelentős adatforgalommal jár!" 
 			android:summaryOff=""
-			android:dependency="downloadDescriptions">
+			>
 		</CheckBoxPreference>
 	</PreferenceCategory>
 </PreferenceScreen>

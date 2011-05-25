@@ -14,6 +14,7 @@
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:paddingBottom="10dip"
+		android:minHeight="40dip"
 	/>
 	<ProgressBar
 		android:id="@+id/dialog_progressbar"

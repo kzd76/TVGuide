@@ -9,9 +9,12 @@ import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.Dialog;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -57,11 +60,26 @@ public class TVGuide extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.main);
-		
+        
         favChList = new ArrayList<Channel>();
         
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		tvprefs = new TVGuidePreference(prefs);
+		
+		ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo wifiInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+		NetworkInfo mobileInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+		NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+		
+		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "WiFi info: " + wifiInfo.toString());
+		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Mobile info: " + mobileInfo.toString());
+		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Active info: " + activeNetworkInfo.toString());
+		
+		if ((tvprefs.isOnlyWifi()) && (!wifiInfo.isConnectedOrConnecting())){
+			
+			//TODO Alert the user here that only wifi is preferred for connections but no wifi is available, then open the WiFi preferences screen
+			//startActivityForResult(new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS), 0);
+		}
 		
 		if (checkDB() > 0) {
         	Button btn1 = (Button) findViewById(R.id.button1);
@@ -88,7 +106,6 @@ public class TVGuide extends Activity {
         				i.putExtra("SpinnerVisibility", false);
         				i.putExtra("ChannelName", favChList.get(0).name);
         				i.putExtra("ChannelID", favChList.get(0).id);
-        				i.putExtra("downloadOnlineImages", tvprefs.isDownloadOnlineImages());
         				startActivity(i);
         			}
         		});

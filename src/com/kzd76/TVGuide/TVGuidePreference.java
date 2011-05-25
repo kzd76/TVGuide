@@ -1,10 +1,17 @@
 package com.kzd76.TVGuide;
 
+import java.io.Serializable;
+
 import android.content.SharedPreferences;
 import android.util.Log;
 
-public class TVGuidePreference {
+public class TVGuidePreference implements Serializable{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private final static String localLogTag = "_Preference";
 	
 	private boolean offlineMode;
@@ -12,6 +19,9 @@ public class TVGuidePreference {
 	private boolean downloadDescriptions;
 	private boolean downloadImages;
 	private boolean downloadOnlineImages;
+	private boolean onlineEnabled;
+	private boolean onlyWifi;
+	private boolean eventsRestrictedWhenOffline;
 	
 	public boolean isDownloadOnlineImages() {
 		return downloadOnlineImages;
@@ -33,11 +43,26 @@ public class TVGuidePreference {
 		return downloadImages;
 	}
 
+	public boolean isOnlineEnabled() {
+		return onlineEnabled;
+	}
+
+	public boolean isOnlyWifi() {
+		return onlyWifi;
+	}
+
+	public boolean isEventsRestrictedWhenOffline() {
+		return eventsRestrictedWhenOffline;
+	}
+
 	public TVGuidePreference(SharedPreferences prefs){
 		this.daysToDownload = 1;
 		this.offlineMode=false;
 		this.downloadDescriptions=true;
 		this.downloadImages=false;
+		this.onlineEnabled=false;
+		this.onlyWifi=false;
+		this.eventsRestrictedWhenOffline=true;
 		
 		try {
 			if (prefs != null){
@@ -46,6 +71,9 @@ public class TVGuidePreference {
 				this.downloadDescriptions = prefs.getBoolean("downloadDescriptions", true);
 				this.downloadImages = prefs.getBoolean("downloadEventPictures", false);
 				this.downloadOnlineImages = prefs.getBoolean("downloadOnlineImages", false);
+				this.onlineEnabled = prefs.getBoolean("onlineTrafficEnabled", false);
+				this.onlyWifi = prefs.getBoolean("onlyWifi", false);
+				this.eventsRestrictedWhenOffline = prefs.getBoolean("eventsWhenOffline", true);
 			} else {
 				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "No default preference was found");
 			}

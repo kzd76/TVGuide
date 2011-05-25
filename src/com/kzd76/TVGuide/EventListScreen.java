@@ -4,16 +4,22 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Scanner;
+import java.util.Date;
 
+import android.app.AlarmManager;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,8 +34,11 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class EventListScreen extends ListActivity {
+	
+	private static final String localLogTag = "_EventListScreen";
 	
 	private ArrayList<ChannelEvent> events = null;
 	private ChannelEventAdapter adapter;
@@ -46,11 +55,14 @@ public class EventListScreen extends ListActivity {
 	
 	private boolean online = true;
 	private boolean isSpinnerVisible = true;
-	private boolean isDownloadOnlineImages = false;
 	
-	private static final String localLogTag = "_EventListScreen";
+	private static String channelName;
 	
 	private TVGuideDB dba;
+	
+	private TVGuidePreference tvprefs;
+	
+	private double data;
 	
     /** Called when the activity is first created. */
     @Override
@@ -64,22 +76,34 @@ public class EventListScreen extends ListActivity {
         Bundle params = getIntent().getExtras();
         if (params != null) {
         	this.isSpinnerVisible = params.getBoolean("SpinnerVisibility", true);
-        	/*
+        	
         	if (params.containsKey("ChannelName")) {
-        		this.chName = params.getString("ChannelName");
+        		channelName = params.getString("ChannelName");
         	} else {
-        		this.chName = "";
+        		channelName = "";
         	}
-        	*/
+
         	if (params.containsKey("ChannelID")) {
         		this.chId = Integer.decode(params.getString("ChannelID"));
         	} else {
         		this.chId = 0;
         	}
         	
-        	this.isDownloadOnlineImages = params.getBoolean("downloadOnlineImages");
+        	if (params.containsKey("Data")) {
+        		this.data = Integer.decode(params.getString("Data"));
+        	} else {
+        		this.data = 0;
+        	}
         }
         
+        TextView dtv = (TextView) findViewById(R.id.eventlist_header);
+        if (dtv != null) {
+        	dtv.setText("Online forgalom: " + data + " kB");
+        }
+        
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		tvprefs = new TVGuidePreference(prefs);
+		
         //Log.d(Constants.LOG_MAIN_TAG + localLogTag,"Spinner: " + this.isSpinnerVisible);
         //Log.d(Constants.LOG_MAIN_TAG + localLogTag,"Channel: " + this.chId);
         
@@ -119,6 +143,23 @@ public class EventListScreen extends ListActivity {
 	        ArrayList<String> channelIdsArray = new ArrayList<String>();
 	        
 	        try {
+	        	
+	        	dba.open();
+	        	Cursor cursor = dba.getChannels();
+	        	
+	        	if (cursor.moveToFirst()) {
+	        		do {
+	        			channelsArray.add(cursor.getString(cursor.getColumnIndex(Constants.CHTABLE_CHANNEL_NAME)));
+	        			channelIdsArray.add(cursor.getString(cursor.getColumnIndex(Constants.CHTABLE_CHANNEL_ID)));
+	        		} while (cursor.moveToNext());
+	        	} else {
+	        		Toast.makeText(this, "Nincs letöltött csatornalista az adatbázisban! Frissítsd a listát a webrõl!", Toast.LENGTH_SHORT).show();
+	        	}
+	        	
+	        	cursor.close();
+	        	dba.close();
+	        	
+	        	/*
 	        	//Scanner scanner = new Scanner(urlConn.getInputStream());
 	        	Scanner scanner = new Scanner(this.getResources().openRawResource(R.raw.channels));
 	        	int i = 0;
@@ -136,7 +177,8 @@ public class EventListScreen extends ListActivity {
 	        	
 		        //Log.i(Constants.LOG_MAIN_TAG + localLogTag, "channel names: " + channelsArray.size());
 		        //Log.i(Constants.LOG_MAIN_TAG + localLogTag, "channel ids: " + channelIdsArray.size());
-		        
+		        */
+	        	
 		        channels = new String[channelsArray.size()];
 		        channelIds = new String[channelIdsArray.size()];
 		        
@@ -160,7 +202,7 @@ public class EventListScreen extends ListActivity {
 		            		int pos = (int) id;
 		            		events.clear();
 		            		runOnUiThread(returnRes);
-		            		//chName = channels[pos];
+		            		channelName = channels[pos];
 		            		getChannelEvents(channelIds[pos], dayId);
 		            	} else {
 		            		// Invalid channel selection
@@ -191,9 +233,28 @@ public class EventListScreen extends ListActivity {
 	final Handler handler = new Handler() {
         public void handleMessage(Message msg) {
             Bundle b = msg.getData();
-            String caption = b.getString(null);
-            TextView txt = (TextView) findViewById(R.id.channelinfo);
-            txt.setText(Html.fromHtml(caption));
+            String id = b.getString("Id");
+            if ("ChannelData".equals(id)) {
+            	String caption = b.getString("Caption");
+            	int chdata = b.getInt("Data");
+            	TextView txt = (TextView) findViewById(R.id.channelinfo);
+            	txt.setText(Html.fromHtml(caption));
+            	
+            	data = data + (chdata / 1000);
+        		TextView dtv = (TextView) findViewById(R.id.eventlist_header);
+        		if (dtv != null) {
+                	dtv.setText("Online forgalom: " + data + " kB");
+                }
+            }
+            if ("EventData".equals(id)) {
+            	int chdata = b.getInt("Data");
+            	
+            	data = data + (chdata / 1000);
+        		TextView dtv = (TextView) findViewById(R.id.eventlist_header);
+        		if (dtv != null) {
+                	dtv.setText("Online forgalom: " + data + " kB");
+                }
+            }
         }
     };
     
@@ -273,7 +334,6 @@ public class EventListScreen extends ListActivity {
     }
     
     private void getOfflineEvents(ChannelData cd){
-    	Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Events collected from database: " + events.size());
     	
     	Message msg = handler.obtainMessage();
     	Bundle b = new Bundle();
@@ -283,11 +343,15 @@ public class EventListScreen extends ListActivity {
     		caption = "<b>Nincs adat</b>";
     	}
     	
-    	b.putString(null, caption);
+    	b.putString("Id", "ChannelData");
+    	b.putString("Caption", caption);
+    	b.putInt("Data", 0);
     	msg.setData(b);
     	handler.sendMessage(msg);
     	
     	events = cd.getEvents();
+    	
+    	Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Events collected from database: " + events.size());
     	
     	runOnUiThread(returnRes);
     }
@@ -298,7 +362,10 @@ public class EventListScreen extends ListActivity {
     	Message msg = handler.obtainMessage();
     	Bundle b = new Bundle();
     	String caption = cd.getCaption();
-    	b.putString(null, caption);
+    	
+    	b.putString("Id", "ChannelData");
+    	b.putString("Caption", caption);
+    	b.putInt("Data", cd.getDataLength());
     	msg.setData(b);
     	handler.sendMessage(msg);
     	
@@ -327,18 +394,27 @@ public class EventListScreen extends ListActivity {
         }
     };
     
-    private void followTargetOnline(String header, String target) {
+    private void followTargetOnline(String header, String target, String startTime) {
     	try {
     		
-    		EventData ed = WebDataProcessor.processEventData(header, target, isDownloadOnlineImages);
-    		followTarget(ed);
+    		EventData ed = WebDataProcessor.processEventData(header, target, tvprefs.isDownloadOnlineImages());
+    		
+    		Message msg = handler.obtainMessage();
+        	Bundle b = new Bundle();
+        	
+        	b.putString("Id", "EventData");
+        	b.putInt("Data", ed.getDataLength());
+        	msg.setData(b);
+        	handler.sendMessage(msg);
+    		
+    		followTarget(ed, startTime);
     	} catch (Exception e) {
     		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Error while collecting event data from the WEB");
     		e.printStackTrace();
     	}
     }
     
-    private void followTarget(EventData ed) {
+    private void followTarget(EventData ed, String startTime) {
     	try{
     		String eventdesc = ed.getDesc();
     		String imgalt = ed.getImageAlt();
@@ -377,16 +453,21 @@ public class EventListScreen extends ListActivity {
     			
     			Button alertButton = (Button) dialog.findViewById(R.id.setalert);
     			if (alertButton != null) {
-    				alertButton.setVisibility(View.INVISIBLE);
-    				/*
+    				
+    				final String eventStartTime = startTime;
+    				final String eventNameText = eventtitle;
+    				final String eventDescription = startTime + " - " + channelName;
+    				
+    				//alertButton.setVisibility(View.INVISIBLE);
+
     				alertButton.setOnClickListener(new View.OnClickListener() {
         				
         				@Override
         				public void onClick(View v) {
-        					setAlarm(eventStartTime, eventNameText);
+        					setAlarm(eventStartTime, eventNameText, eventDescription);
         				}
         			});
-        			*/
+        			
     			} else {
     				Log.d(Constants.LOG_MAIN_TAG + localLogTag,"Button initialization failed");
     			}
@@ -401,45 +482,52 @@ public class EventListScreen extends ListActivity {
     }
     
     @SuppressWarnings("unused")
-	private void setAlarm(String startTime, String eventName){
+	private void setAlarm(String startTime, String eventName, String eventDescription){
     	try {
     		Calendar cal = Calendar.getInstance();
-    		// TODO Fix Alarm
     		
-    		/*
     		DateFormat df = new SimpleDateFormat("hh:mm");
         	Date start = df.parse(startTime);
         	Date now = cal.getTime();
-        	int newDay = now.getDay();
+        	
+        	int newDay = cal.get(Calendar.DATE);
         	if (dayId > 1) {
         		newDay = newDay + (dayId - 1);
         	}
         	int newHour = start.getHours();
     		int newMin = start.getMinutes();
     		
-    		cal.set(now.getYear(), now.getMonth(), newDay, newHour, newMin);
+    		int newYear = cal.get(Calendar.YEAR);
+    		int newMonth = cal.get(Calendar.MONTH);
+    		
+    		cal.set(newYear, newMonth, newDay, newHour, newMin, 0);
+    		
+    		start = cal.getTime();
+    		
+    		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Now: " + now + ", start: " + start);
         	
-        	if ((dayId > 1) || (cal.getTime().after(now))) {
+        	if (start.after(now)) {
+        		
+        		//cal.add(Calendar.SECOND, 30);
+        		
+        		Intent intent = new Intent(EventListScreen.this, EventAlarmService.class);
+        		intent.putExtra("EventTitle", eventName);
+        		intent.putExtra("EventDescription", eventDescription);
+        		PendingIntent pendingIntent = PendingIntent.getService(EventListScreen.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        		
+        		int reqCode = 760630; //can be anything
+            	String alarmText = "Értesítés mûsorkezdésrõl";
+            	Log.d(Constants.LOG_MAIN_TAG + localLogTag,"Alarm set for " + eventName + " / " + eventDescription);
+            	
+            	AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        		alarmManager.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pendingIntent);
+        		String rest = "...";
+        		Toast.makeText(this, "Értesítés " + rest + " múlva", Toast.LENGTH_LONG).show();
         		
         	} else {
         		Toast.makeText(this, "A mûsor korábban kezdõdött, nem lehet értesítõt beállítani", Toast.LENGTH_SHORT).show();
         	}
-        	*/
-    		/*
-    		cal.add(Calendar.SECOND, 30);
-    		
-        	Intent intent = new Intent(this, AlarmReceiver.class);
-        	int reqCode = 760630; //can be anything
-        	String alarmText = "Beállított értesítés\n" + chName + "\n" + startTime + " - " + eventName;
-        	Log.d(Constants.LOG_MAIN_TAG + localLogTag,alarmText);
-        	intent.putExtra("alarm_message", alarmText);
-        	PendingIntent alarmSender = PendingIntent.getBroadcast(this, reqCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        	AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-    		alarmManager.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), alarmSender);
-    		String rest = "";
-    		Toast.makeText(this, "Értesítés " + rest + " múlva", Toast.LENGTH_LONG).show();
-    		*/
+        	
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 	
@@ -463,7 +551,7 @@ public class EventListScreen extends ListActivity {
         	ChannelEvent ce = items.get(position);
         	if (ce != null) {
         		//Log.d(Constants.LOG_MAIN_TAG + localLogTag, ce.getTime() + " - " + ce.getEventName() + " / " + ce.getEventDesc() + "   (" + ce.getEventMore() + ")");
-    			final String st = ce.getTime();
+    			final String eventStartTime = ce.getTime();
     			final String en = ce.getEventName();
     			final String ed = ce.getEventDesc();
     			final String em = ce.getEventMore();
@@ -472,7 +560,7 @@ public class EventListScreen extends ListActivity {
         		TextView bt = (TextView) v.findViewById(R.id.bottomtext);
         		ImageView iv = (ImageView) v.findViewById(R.id.infoimage);
         		if (it != null) {
-        			it.setText(st);        			
+        			it.setText(eventStartTime);        			
         		}
         		if (tt != null) {
         			tt.setText(en);        			
@@ -495,15 +583,22 @@ public class EventListScreen extends ListActivity {
 	        				iv.setOnClickListener(new View.OnClickListener() {
 	        					
 	        					public void onClick(View v) {
-	        						followTargetOnline(header, target);
+	        						followTargetOnline(header, target, eventStartTime);
 	        					}
 	        				});
+	        				iv.setVisibility(View.VISIBLE);
 	        			} else {
 	        				iv.setVisibility(View.INVISIBLE);
 	        			}
         			} else {
+        				
+        				// Offline case
+        				
         				final EventData eData = ce.getEventData();
-        				if (eData !=null) {
+        				if (eData != null) {
+        					
+        					// Event description found in database
+        					
         					String temp = eData.getDesc() + eData.getInfo();
         					if (temp.length() > 0) {
         						iv.setImageResource(R.drawable.information_bw);
@@ -511,14 +606,48 @@ public class EventListScreen extends ListActivity {
     	        				iv.setOnClickListener(new View.OnClickListener() {
     	        					
     	        					public void onClick(View v) {
-    	        						followTarget(eData);
+    	        						followTarget(eData, eventStartTime);
     	        					}
     	        				});
         					} else {
-        						iv.setVisibility(View.INVISIBLE);
+        						
+        						// Event data from database is null, event may has link for details to follow
+        						
+        						if ((em.length() > 0) && (!tvprefs.isEventsRestrictedWhenOffline()) && (tvprefs.isOnlineEnabled())){
+    								final String header = en;
+        	        				final String target = em;
+        	        				iv.setImageResource(R.drawable.information_bw);
+        	        				iv.setClickable(true);
+        	        				iv.setOnClickListener(new View.OnClickListener() {
+        	        					
+        	        					public void onClick(View v) {
+        	        						followTargetOnline(header, target, eventStartTime);
+        	        					}
+        	        				});
+        	        				iv.setVisibility(View.VISIBLE);
+    							} else {
+    								iv.setVisibility(View.INVISIBLE);
+    							}
         					}
         				} else {
-        					iv.setVisibility(View.INVISIBLE);
+        					
+        					// Event data from database is null, event may has link for details to follow
+        					
+        					if ((em.length() > 0) && (!tvprefs.isEventsRestrictedWhenOffline()) && (tvprefs.isOnlineEnabled())) {
+        						final String header = en;
+    	        				final String target = em;
+    	        				iv.setImageResource(R.drawable.information_bw);
+    	        				iv.setClickable(true);
+    	        				iv.setOnClickListener(new View.OnClickListener() {
+    	        					
+    	        					public void onClick(View v) {
+    	        						followTargetOnline(header, target, eventStartTime);
+    	        					}
+    	        				});
+    	        				iv.setVisibility(View.VISIBLE);
+        					} else {
+        						iv.setVisibility(View.INVISIBLE);
+        					}
         				}
         			}
         		}
@@ -590,5 +719,5 @@ public class EventListScreen extends ListActivity {
     		getChannelEvents(Integer.toString(chId), dayId);
     	}
 	}
-
+    
 }

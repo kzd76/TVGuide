@@ -36,7 +36,7 @@ public class Constants {
 	 */
 	
 	public static final String TVGUIDE_HOST = "http://port.hu";
-	public static final String TVGUIDE_CHANNEL_URL = "/pls/w/mobil.tv_channel?i_days={0}&i_ch_id={1}&i_box=2&i_serial=1&i_st_hour=0&i_st_min=0&i_topic_id=1";
+	public static final String TVGUIDE_CHANNEL_URL = "/pls/w/mobil.tv_channel?i_days={0}&i_ch_id={1}&i_box=1&i_serial=1&i_st_hour=23&i_st_min=59&i_topic_id=1";
 	
 	/*
 	 * MISC CONSTANTS

@@ -1,6 +1,7 @@
 package com.kzd76.TVGuide;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -154,6 +155,7 @@ public class WebDataProcessor {
     	cd.setEventDay(eventDay);
     	cd.setCaption(cd.buildCaption());
     	cd.setEvents(events);
+    	cd.setDataLength(text.length());
     	
     	return cd;
 	}
@@ -214,17 +216,35 @@ public class WebDataProcessor {
 			ed.setImageAlt(imgalt);
 			ed.setDesc(eventdesc);
 			
+			int bmpSize = 0;
+			
 			if ((imageurl.length() > 0) && (imageurl.indexOf("http://") >= 0) && (downloadImages)) {
 				URL imgurl = new URL(imageurl);
 				HttpURLConnection imgconn = (HttpURLConnection) imgurl.openConnection();
 				imgconn.setDoInput(true);
 				imgconn.connect();
+				bmpSize = imgconn.getContentLength();
+				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Image length: " + bmpSize);
 				InputStream inst = imgconn.getInputStream();
+				/*
+				ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+				byte[] buffer = new byte[128];
+				int read;
+				while ((read = inst.read(buffer)) > 0) {
+					bmpSize = bmpSize + read;
+					bytes.write(buffer, 0, read);
+				}
+				
+				bmpSize = inst.available();
+				*/
 				Bitmap bmp = BitmapFactory.decodeStream(inst);
 				ed.setImage(bmp);
 			} else {
 				ed.setImage(null);
 			}
+			
+			ed.setDataLength(text.length() + bmpSize);
+			
 			return ed;
 		} catch (Exception e) {
 			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Error while processing event from received text. " + e.getMessage());
