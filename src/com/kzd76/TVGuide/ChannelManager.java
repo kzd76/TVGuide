@@ -1,7 +1,6 @@
 package com.kzd76.TVGuide;
 
 import java.util.ArrayList;
-import java.util.Scanner;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -49,8 +48,14 @@ public class ChannelManager extends ListActivity{
 	
 	private final int WEBDOWNLOAD_DIALOG = 0;
 	private final int CHANNELSTORE_DIALOG = 1;
+	private final int CHANNELGROUP_DIALOG = 2;
+	private final int LISTCHANGED_DIALOG = 3;
 	
 	private boolean changed = false;
+	
+	private static ArrayList<ChannelGroup> groups;
+	private static ArrayList<String> groupNames;
+	private boolean[] groupFlags;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -77,12 +82,12 @@ public class ChannelManager extends ListActivity{
 	}
 	
 	@Override
-    public void onDestroy(){
-    	if (changed) {
-    		//TODO Ask user about changed list and save list if needed.
-    		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "List changed, dialog goes here");
+    public void onBackPressed(){
+		if (changed) {
+    		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "List changed, opening dialog");
+    		showDialog(LISTCHANGED_DIALOG);
     	}
-    	super.onDestroy();
+		//super.onBackPressed(); - Disabling default action for back key, when the dialog is ready it will close the activity.
     }
 	
 	private ChangeListener changeListener = 
@@ -220,9 +225,9 @@ public class ChannelManager extends ListActivity{
 			ListAdapter la = getListAdapter();
 			CheckBox cb = (CheckBox)view.findViewById(R.id.offlinecheck);
 			if (cb.isChecked()){
-				Toast.makeText(ChannelManager.this, "A csatornaadatok elérhetõek lesznek adatkapcsolat nélkül is!", Toast.LENGTH_LONG).show();
+				Toast.makeText(ChannelManager.this, "A csatornaadatok elérhetõek lesznek adatkapcsolat nélkül is!", Toast.LENGTH_SHORT).show();
 			} else {
-				Toast.makeText(ChannelManager.this, "A csatornaadatok nem lesznek elérhetõek adatkapcsolat nélkül!", Toast.LENGTH_LONG).show();
+				Toast.makeText(ChannelManager.this, "A csatornaadatok nem lesznek elérhetõek adatkapcsolat nélkül!", Toast.LENGTH_SHORT).show();
 			}
 			((ChannelAdapter)la).updateItem(index, cb.isChecked());
 		}
@@ -311,35 +316,36 @@ public class ChannelManager extends ListActivity{
     	this.finish();
     }
 	
-	private void downloadChListFromWeb() {
-		chList.clear();
+	private void downloadChGroupListFromWeb() {
 		
-		//Log.d("CHMANAG","Opening resource: channels");
+		groups =  WebDataProcessor.processChannelGroupsFromWeb();
+		groupNames = new ArrayList<String>();
 		
-		Scanner scanner = new Scanner(this.getResources().openRawResource(R.raw.channels));
-    	int i = 0;
-    	while (scanner.hasNextLine()){
-    		String channeltext = scanner.nextLine();
-    		if (!channeltext.startsWith("#")){
-    			Channel channel = new Channel();
-        		String[] channelText = channeltext.split("\\|\\|");
-        		//Log.i("Channel","Name: " + channelText[0] + " ID: " + channelText[1] + " / Original: " + channeltext);
-        		if (channelText.length == 2) {
-        			channel.name = channelText[0];
-        			channel.id = channelText[1];
-        			channel.offline = false;
-        			chList.add(channel);
-        		}
-        		i++;
-    		}
-    	}
-    	
-    	if (i > 0) {
-    		showDialog(CHANNELSTORE_DIALOG);
-    	} else {
-    		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Channel list from WEB is empty!");
-    	}
+		if (groups.size() > 0){
+			for (ChannelGroup group : groups) {
+				groupNames.add(group.groupName);
+			}
+			
+			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Group names: " + groupNames);
+			showDialog(CHANNELGROUP_DIALOG);
+		}
 		
+	}
+	
+	private void downloadChannelsFromWeb(ArrayList<ChannelGroup> channelGroups){
+		if (channelGroups.size() > 0) {
+			chList.clear();
+			
+			chList = WebDataProcessor.processChannelsFromWeb(channelGroups);
+			
+			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Channels from web: " + chList.size());
+			
+			if (chList.size() > 0) {
+				showDialog(CHANNELSTORE_DIALOG);
+			} else {
+				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "No channel data from web");
+			}
+		}
 	}
 	
 	protected Dialog onCreateDialog(int id){
@@ -355,7 +361,7 @@ public class ChannelManager extends ListActivity{
 			dialogTemplate.setItems(items, new DialogInterface.OnClickListener() {
 			    public void onClick(DialogInterface dialog, int item) {
 			        if (item == DOWNLOAD_WEB) {
-			        	downloadChListFromWeb();
+			        	downloadChGroupListFromWeb();
 			        }
 			        if (item == CANCEL) {
 			        	finishChannelManager();
@@ -367,7 +373,7 @@ public class ChannelManager extends ListActivity{
 			break;
 		case CHANNELSTORE_DIALOG:
 			AlertDialog.Builder yesNoDialog = new AlertDialog.Builder(ChannelManager.this);
-			yesNoDialog.setMessage("Új csatornalistát találtam. Frissítsem az adatbázist?")
+			yesNoDialog.setMessage("A frissítés sikeresen megtörtént, " + chList.size() + " új csatornát találtam. Frissítsem az adatbázist?")
 			       .setCancelable(false)
 			       .setPositiveButton("Igen", new DialogInterface.OnClickListener() {
 			           public void onClick(DialogInterface dialog, int id) {
@@ -380,6 +386,67 @@ public class ChannelManager extends ListActivity{
 			           }
 			       });
 			dialog = yesNoDialog.create();
+			break;
+		case CHANNELGROUP_DIALOG:
+			final CharSequence[] dialogItems = new CharSequence[groupNames.size()]; 
+			groupNames.toArray(dialogItems);
+			groupFlags = new boolean[dialogItems.length];
+			for (int i = 0; i < dialogItems.length; i++){
+				groupFlags[i] = true;
+			}
+			
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("Csoportok szûrése");
+			builder.setMultiChoiceItems(dialogItems, groupFlags, new DialogInterface.OnMultiChoiceClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+					groupFlags[which] = isChecked;
+				}
+			});
+			builder.setPositiveButton("Tovább", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					ArrayList<ChannelGroup> newGroups = new ArrayList<ChannelGroup>();
+					String temp = "";
+					for (int i = 0; i < groupFlags.length; i++) {
+						if (groupFlags[i]) {
+							ChannelGroup channelGroup = groups.get(i);
+							newGroups.add(channelGroup);
+							temp = temp + " " + channelGroup.groupName;
+						}
+					}
+					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Groups selected: " + temp);
+					if (newGroups.size() > 0) {
+						downloadChannelsFromWeb(newGroups);
+					}
+				}
+			});
+			builder.setNegativeButton("Mégsem", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.cancel();
+				}
+			});
+			dialog = builder.create();
+			break;
+		case LISTCHANGED_DIALOG:
+			AlertDialog.Builder listChangeDialog = new AlertDialog.Builder(ChannelManager.this);
+			listChangeDialog.setMessage("A csatornalista megváltozott! Frissítsem az adatbázist?")
+			       .setCancelable(false)
+			       .setPositiveButton("Igen", new DialogInterface.OnClickListener() {
+			           public void onClick(DialogInterface dialog, int id) {
+			                storeChannelList(true);
+			                ChannelManager.this.finish();
+			           }
+			       })
+			       .setNegativeButton("Nem", new DialogInterface.OnClickListener() {
+			           public void onClick(DialogInterface dialog, int id) {
+			                dialog.cancel();
+			                ChannelManager.this.finish();
+			           }
+			       });
+			dialog = listChangeDialog.create();
 			break;
 		default:
 			dialog = null;
@@ -433,7 +500,7 @@ public class ChannelManager extends ListActivity{
     	
     	switch(item.getItemId()) {
     	case MENU_GETWEB:
-    		downloadChListFromWeb();
+    		downloadChGroupListFromWeb();
     		return true;
     	case MENU_SAVE:
     		storeChannelList(false);

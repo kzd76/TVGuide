@@ -9,13 +9,16 @@ import android.util.Log;
 
 public class TVGuideDBhelper extends SQLiteOpenHelper{
 	
+	private static final String localLogTag = "_DBHelper";
+	
 	private static final String CREATE_CHANNEL_TABLE = "create table " +
 	Constants.CHTABLE_TABLE_NAME + " (" + 
 	Constants.CHTABLE_KEY_ID + " integer primary key autoincrement, " + 
 	Constants.CHTABLE_CHANNEL_NAME + " text not null, " +
 	Constants.CHTABLE_CHANNEL_ID + " text not null, " + 
 	Constants.CHTABLE_DATE_NAME + " long, " +
-	Constants.CHTABLE_OFFLINE_MARKER + " text not null );";
+	Constants.CHTABLE_OFFLINE_MARKER + " text not null, " +
+	Constants.CHTABLE_CHANNEL_IMAGE + " blob );";
 	
 	private static final String CREATE_EVENT_TABLE = "create table " +
 	Constants.EVTABLE_TABLE_NAME + " (" + 
@@ -36,17 +39,20 @@ public class TVGuideDBhelper extends SQLiteOpenHelper{
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
+		
+		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Creating database.");
+		
 		try {
 			db.execSQL(CREATE_CHANNEL_TABLE);
 			db.execSQL(CREATE_EVENT_TABLE);
 		} catch (SQLiteException e) {
-			Log.v("DBHELPER","Unable to create database. " + e.getMessage());
+			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Unable to create database. " + e.getMessage());
 		}
 	}
 	
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		Log.v("DBHELPER", "Database upgrade from " + oldVersion + " to " + newVersion);
+		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Database upgrade from " + oldVersion + " to " + newVersion);
 		db.execSQL("drop table if exists " + Constants.CHTABLE_TABLE_NAME);
 		db.execSQL("drop table if exists " + Constants.EVTABLE_TABLE_NAME);
 		onCreate(db);

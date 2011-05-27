@@ -26,7 +26,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
@@ -63,13 +62,14 @@ public class EventListScreen extends ListActivity {
 	private TVGuidePreference tvprefs;
 	
 	private double data;
+	private double totalData;
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         
         dba = new TVGuideDB(this);
         
@@ -89,16 +89,18 @@ public class EventListScreen extends ListActivity {
         		this.chId = 0;
         	}
         	
-        	if (params.containsKey("Data")) {
-        		this.data = Integer.decode(params.getString("Data"));
+        	if (params.containsKey("TotalData")) {
+        		this.totalData = params.getDouble("TotalData");
+        		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Received message with totalData=" + totalData);
         	} else {
-        		this.data = 0;
+        		this.totalData = 0;
         	}
+        	
         }
         
         TextView dtv = (TextView) findViewById(R.id.eventlist_header);
         if (dtv != null) {
-        	dtv.setText("Online forgalom: " + data + " kB");
+        	dtv.setText("Online forgalom: " + totalData + " kB");
         }
         
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -159,26 +161,6 @@ public class EventListScreen extends ListActivity {
 	        	cursor.close();
 	        	dba.close();
 	        	
-	        	/*
-	        	//Scanner scanner = new Scanner(urlConn.getInputStream());
-	        	Scanner scanner = new Scanner(this.getResources().openRawResource(R.raw.channels));
-	        	int i = 0;
-	        	while (scanner.hasNextLine()){
-	        		String channeltext = scanner.nextLine();
-	        		String[] channel = channeltext.split("\\|\\|");
-	        		//Log.i(Constants.LOG_MAIN_TAG + localLogTag,"Name: " + channel[0] + " ID: " + channel[1] + " / Original: " + channeltext);
-	        		if (channel.length == 2) {
-	        			channelsArray.add(channel[0]);
-	        			channelIdsArray.add(channel[1]);
-	        		}
-	        		i++;
-	        	}
-	        	Log.d(Constants.LOG_MAIN_TAG + localLogTag,"Total rows from file: " + i);
-	        	
-		        //Log.i(Constants.LOG_MAIN_TAG + localLogTag, "channel names: " + channelsArray.size());
-		        //Log.i(Constants.LOG_MAIN_TAG + localLogTag, "channel ids: " + channelIdsArray.size());
-		        */
-	        	
 		        channels = new String[channelsArray.size()];
 		        channelIds = new String[channelIdsArray.size()];
 		        
@@ -230,24 +212,25 @@ public class EventListScreen extends ListActivity {
         
     }
     
-	final Handler handler = new Handler() {
+    final Handler handler = new Handler() {
         public void handleMessage(Message msg) {
             Bundle b = msg.getData();
             String id = b.getString("Id");
             if ("ChannelData".equals(id)) {
             	String caption = b.getString("Caption");
-            	int chdata = b.getInt("Data");
+            	int chdata = b.getInt("ChannelData");
             	TextView txt = (TextView) findViewById(R.id.channelinfo);
             	txt.setText(Html.fromHtml(caption));
             	
             	data = data + (chdata / 1000);
+            	
         		TextView dtv = (TextView) findViewById(R.id.eventlist_header);
         		if (dtv != null) {
                 	dtv.setText("Online forgalom: " + data + " kB");
                 }
             }
             if ("EventData".equals(id)) {
-            	int chdata = b.getInt("Data");
+            	int chdata = b.getInt("EventData");
             	
             	data = data + (chdata / 1000);
         		TextView dtv = (TextView) findViewById(R.id.eventlist_header);
@@ -257,6 +240,16 @@ public class EventListScreen extends ListActivity {
             }
         }
     };
+    
+    @Override
+    public void onBackPressed(){
+    	totalData = totalData + data;
+    	Intent intent = new Intent();
+		intent.putExtra("TotalData", data);
+		setResult(RESULT_OK, intent);
+		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Before destroy totalData=" + totalData);
+    	finish();
+    }
     
     private void getChannelEvents(String channelId, int dayId ){
     	final String channel = channelId;
@@ -345,7 +338,7 @@ public class EventListScreen extends ListActivity {
     	
     	b.putString("Id", "ChannelData");
     	b.putString("Caption", caption);
-    	b.putInt("Data", 0);
+    	b.putInt("ChannelData", 0);
     	msg.setData(b);
     	handler.sendMessage(msg);
     	
@@ -365,7 +358,7 @@ public class EventListScreen extends ListActivity {
     	
     	b.putString("Id", "ChannelData");
     	b.putString("Caption", caption);
-    	b.putInt("Data", cd.getDataLength());
+    	b.putInt("ChannelData", cd.getDataLength());
     	msg.setData(b);
     	handler.sendMessage(msg);
     	
@@ -403,7 +396,7 @@ public class EventListScreen extends ListActivity {
         	Bundle b = new Bundle();
         	
         	b.putString("Id", "EventData");
-        	b.putInt("Data", ed.getDataLength());
+        	b.putInt("EventData", ed.getDataLength());
         	msg.setData(b);
         	handler.sendMessage(msg);
     		
@@ -719,5 +712,5 @@ public class EventListScreen extends ListActivity {
     		getChannelEvents(Integer.toString(chId), dayId);
     	}
 	}
-    
+        
 }

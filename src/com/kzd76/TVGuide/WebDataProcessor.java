@@ -1,7 +1,6 @@
 package com.kzd76.TVGuide;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -23,13 +22,23 @@ public class WebDataProcessor {
 	
 	public static final String host = Constants.TVGUIDE_HOST;
 	public static final String urlTemplate = host + Constants.TVGUIDE_CHANNEL_URL;
-	
+	public static final String urlEarlyTemplate = host + Constants.TVGUIDE_CHANNEL_EARLY_URL;
 	
 	public final static String getUrl(String channelId, int dayId){
 		
 		String dayIdText = Integer.toString(dayId);
     	Object[] data = {dayIdText, channelId};
     	MessageFormat urlformatter = new MessageFormat(urlTemplate);
+    	String urltext = urlformatter.format(data);
+    	
+    	return urltext; 
+	}
+	
+	private static String getEarlyUrl(String channelId, int dayId) {
+		
+		String dayIdText = Integer.toString(dayId);
+    	Object[] data = {dayIdText, channelId};
+    	MessageFormat urlformatter = new MessageFormat(urlEarlyTemplate);
     	String urltext = urlformatter.format(data);
     	
     	return urltext; 
@@ -72,9 +81,21 @@ public class WebDataProcessor {
 	public final static ChannelData processChannelData(String channelId, int dayId) {
 		
 		try {
-			String text = getHTTPData(getUrl(channelId, dayId));
-	    	
-	    	return processChannelDataFromText(channelId, dayId, host, text);
+			
+			ChannelData cd = new ChannelData();
+			String text;
+			
+			if (Constants.TVGUIDE_USE_EARLY_URL) {
+				if (dayId > 0) {
+					text = getHTTPData(getEarlyUrl(channelId, dayId - 1));
+					cd = processChannelDataFromText(null, channelId, dayId - 1, host, text);
+				}
+			} else {
+				cd = null;
+			}
+			
+			text = getHTTPData(getUrl(channelId, dayId));
+	    	return processChannelDataFromText(cd, channelId, dayId, host, text);
 			
 		} catch (Exception e) {
 			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Error while processing channel data: " + e.getMessage());
@@ -82,13 +103,24 @@ public class WebDataProcessor {
 		}
 	}
 	
-	public final static ChannelData processChannelDataFromText(String channelId, int dayId, String host, String receivedText) {
+	public final static ChannelData processChannelDataFromText(ChannelData channelData, String channelId, int dayId, String host, String receivedText) {
 		final String text = receivedText;
 		
 		String chname = text.substring(text.indexOf("span class=\"txt\"")+17);
     	String prevlist = chname;
+    	int prevData = 0;
     	
-    	ArrayList<ChannelEvent> events = new ArrayList<ChannelEvent>();
+    	ChannelData cd;
+    	ArrayList<ChannelEvent> events;
+    	
+    	if (channelData != null){
+    		cd = channelData;
+    		events = cd.getEvents();
+    		prevData = cd.getDataLength();
+    	} else {
+    		cd = new ChannelData();
+    		events = new ArrayList<ChannelEvent>();
+    	}
     	
     	chname = chname.substring(0, chname.indexOf("</span>"));
     	
@@ -149,13 +181,13 @@ public class WebDataProcessor {
     	Date now = cal.getTime();
     	String eventDay = df.format(now);
     	
-    	ChannelData cd = new ChannelData();
+    	
     	cd.setChannelName(chname);
     	cd.setChannelId(channelId);
     	cd.setEventDay(eventDay);
     	cd.setCaption(cd.buildCaption());
     	cd.setEvents(events);
-    	cd.setDataLength(text.length());
+    	cd.setDataLength(prevData + text.length());
     	
     	return cd;
 	}
@@ -251,6 +283,83 @@ public class WebDataProcessor {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public final static ArrayList<ChannelGroup> processChannelGroupsFromWeb(){
+		
+		ArrayList<ChannelGroup> groups = new ArrayList<ChannelGroup>();
+		
+		final String text = getHTTPData(host + Constants.TVGUIDE_CHANNEL_GROUP_SOURCE_URL);
+		
+		if (text.length() > 0) {
+			String[] rawGroups = text.split("a class=\"txt\"");
+			
+			for (String rawItem : rawGroups){
+				if (rawItem.contains("i_grp_id=")){
+					ChannelGroup group = new ChannelGroup();
+					String temp = rawItem.substring(rawItem.indexOf("i_grp_id=") + 9);
+					temp = temp.substring(0, temp.indexOf("&"));
+					group.groupId = temp;
+					temp = rawItem.substring(rawItem.indexOf("\">") + 2);
+					temp = temp.substring(0, temp.indexOf("<"));
+					group.groupName = temp;
+					
+					groups.add(group);
+				}
+			}
+		}
+		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Groups from web: " + groups.size());
+		return groups;
+	}
+	
+	public final static ArrayList<Channel> processChannelsFromWeb(ArrayList<ChannelGroup> channelGroups){
+		ArrayList<Channel> channels = new ArrayList<Channel>();
+		ArrayList<ChannelGroup> groups;
+		
+		if ((channelGroups == null) && (Constants.TVGUIDE_CHANNELGROUPS)){
+			groups = processChannelGroupsFromWeb();
+		} else {
+			groups = channelGroups;
+		}
+		
+		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Channel groups to process: " + groups.toString());
+		
+		for (ChannelGroup group : groups) {
+			if (group.groupId != null) {
+				
+				Object[] data = {group.groupId};
+		    	MessageFormat urlformatter = new MessageFormat(host + Constants.TVGUIDE_CHANNEL_SOURCE_URL);
+		    	String urltext = urlformatter.format(data);
+		    	
+		    	Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Downloading channel data from: " + urltext);
+				
+				String text = getHTTPData(urltext);
+				
+				if (text.length() > 0) {
+					String[] rawChannels = text.split("a class=\"txt\"");
+					
+					for (String rawChannel : rawChannels){
+						if (rawChannel.contains("i_ch_id")){
+							Channel channel = new Channel();
+							String temp = rawChannel.substring(rawChannel.indexOf("i_ch_id=") + 8);
+							temp = temp.substring(0, temp.indexOf("&"));
+							channel.id = temp;
+							temp = rawChannel.substring(rawChannel.indexOf("\">") + 2);
+							temp = temp.substring(0, temp.indexOf("<"));
+							channel.name = temp;
+							
+							channels.add(channel);
+						}
+					}
+				} else {
+					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "No data is received from " + urltext);
+				}
+			}
+		}
+
+		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Channels from web: " + channels.size());
+		
+		return channels;
 	}
 	
 }

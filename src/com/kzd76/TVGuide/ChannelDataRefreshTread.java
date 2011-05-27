@@ -1,11 +1,6 @@
 package com.kzd76.TVGuide;
 
-import java.io.BufferedInputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -39,10 +34,10 @@ public class ChannelDataRefreshTread extends Thread{
 		final boolean downloadImages = tvprefs.isDownloadImages();
 		int channels = channelIds.length;
 		ChannelData cd = null;
-		URL url = null;
-		HttpURLConnection urlConnection = null;
+		//URL url = null;
+		//HttpURLConnection urlConnection = null;
 		int dayId;
-		StringBuilder text = null;
+		//StringBuilder text = null;
 		int channelCounter = 0;
 		
 		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Thread started, channels: " + channelIds.length + ", days to download: " + days + ", images: " + downloadImages);
@@ -52,33 +47,11 @@ public class ChannelDataRefreshTread extends Thread{
 				dayId = dayCounter + 1;
 				
 				try {
-					url = new URL(WebDataProcessor.getUrl(channelId, dayId));
-					urlConnection = (HttpURLConnection) url.openConnection();
-			        String contentType = urlConnection.getContentType();
-			        String charset = "UTF-8";
-			        if ((contentType.length() > 0) && (contentType.toUpperCase().indexOf("CHARSET")) > 0) {
-			        	charset = contentType.substring(contentType.toUpperCase().indexOf("CHARSET") + 7);
-			        	charset = charset.substring(charset.indexOf("=") + 1);
-			        	int endpos = charset.indexOf(";");
-			        	if (endpos < 0) {
-			        		endpos = charset.length();
-			        	}
-			        	charset = charset.substring(0, endpos);
-			        	charset = charset.trim();
-			        }
-			        InputStream in = new BufferedInputStream(urlConnection.getInputStream(), 8192);
-			    	text = new StringBuilder();
-				    String NL = System.getProperty("line.separator");
-				    Scanner scanner = new Scanner(in, charset);
-			    	while (scanner.hasNextLine()){
-			    		text.append(scanner.nextLine() + NL);
-			    	}
-			    	urlConnection.disconnect();
-			    	
-			    	int amount = text.length();  
-			    	
-			    	cd = WebDataProcessor.processChannelDataFromText(channelId, dayId, WebDataProcessor.host, text.toString());
-					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "From WebDataProcessor: " + cd.getCaption() + " / " + cd.getEventCount());
+					
+					cd = WebDataProcessor.processChannelData(channelId, dayId);
+					int amount = cd.getDataLength();
+					
+			    	Log.d(Constants.LOG_MAIN_TAG + localLogTag, "From WebDataProcessor: " + cd.getCaption() + " / " + cd.getEventCount());
 					
 					ArrayList<ChannelEvent> events;
 					
@@ -95,37 +68,15 @@ public class ChannelDataRefreshTread extends Thread{
 							
 							if (ev.getEventMore().length() > 0) {
 								
-								url = new URL(ev.getEventMore());
-								urlConnection = (HttpURLConnection) url.openConnection();
-						        contentType = urlConnection.getContentType();
-						        charset = "UTF-8";
-						        if ((contentType.length() > 0) && (contentType.toUpperCase().indexOf("CHARSET")) > 0) {
-						        	charset = contentType.substring(contentType.toUpperCase().indexOf("CHARSET") + 7);
-						        	charset = charset.substring(charset.indexOf("=") + 1);
-						        	int endpos = charset.indexOf(";");
-						        	if (endpos < 0) {
-						        		endpos = charset.length();
-						        	}
-						        	charset = charset.substring(0, endpos);
-						        	charset = charset.trim();
-						        }
-						        in = new BufferedInputStream(urlConnection.getInputStream(), 8192);
-						    	text = new StringBuilder();
-							    scanner = new Scanner(in, charset);
-						    	while (scanner.hasNextLine()){
-						    		text.append(scanner.nextLine() + NL);
-						    	}
-						    	urlConnection.disconnect();
-						    	
-						    	if (evcur == 0) {
-						    		amount = amount + text.length();
-						    	} else {
-						    		amount = text.length();
-						    	}
-						    	
-								EventData ed = WebDataProcessor.processEventDataFromText(ev.getEventName(), text.toString(), downloadImages);
+								EventData ed = WebDataProcessor.processEventData(ev.getEventName(), ev.getEventMore(), downloadImages);
 								ev.setEventData(ed);
 								
+								if (evcur == 0) {
+						    		amount = amount + ed.getDataLength();
+						    	} else {
+						    		amount = ed.getDataLength();
+						    	}
+						    	
 							}
 							
 							double e = (100 / channels / days) * evcur / evtot;
@@ -179,7 +130,7 @@ public class ChannelDataRefreshTread extends Thread{
 					
 				} catch (Exception e) {
 					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Error while downloading HTTP data." + e.getMessage()); 
-					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "URL: " + url.toString());
+					//Log.d(Constants.LOG_MAIN_TAG + localLogTag, "URL: " + url.toString());
 				}
 				
 			}

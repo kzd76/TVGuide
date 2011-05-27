@@ -15,6 +15,7 @@ public class Constants {
 	public static final String CHTABLE_DATE_NAME = "refresh_date";
 	public static final String CHTABLE_OFFLINE_MARKER = "offline";
 	public static final String CHTABLE_KEY_ID = "_id";
+	public static final String CHTABLE_CHANNEL_IMAGE = "channel_image";
 	
 	public static final String CHTABLE_OFFLINE_TRUE = "true";
 	public static final String CHTABLE_OFFLINE_FALSE = "";
@@ -36,7 +37,15 @@ public class Constants {
 	 */
 	
 	public static final String TVGUIDE_HOST = "http://port.hu";
+	
+	public static final boolean TVGUIDE_USE_EARLY_URL = true;
+	public static final String TVGUIDE_CHANNEL_EARLY_URL = "/pls/w/mobil.tv_channel?i_days={0}&i_ch_id={1}&i_box=2&i_serial=1&i_st_hour=23&i_st_min=59&i_topic_id=1";
 	public static final String TVGUIDE_CHANNEL_URL = "/pls/w/mobil.tv_channel?i_days={0}&i_ch_id={1}&i_box=1&i_serial=1&i_st_hour=23&i_st_min=59&i_topic_id=1";
+	
+	
+	public static final boolean TVGUIDE_CHANNELGROUPS = true;
+	public static final String TVGUIDE_CHANNEL_SOURCE_URL = "/pls/w/mobil.tv_channels?i_grp_id={0}&i_topic_id=1";
+	public static final String TVGUIDE_CHANNEL_GROUP_SOURCE_URL = "/pls/w/mobil.group_list?i_county_id=-1&i_city_id=-1&i_topic_id=1";
 	
 	/*
 	 * MISC CONSTANTS

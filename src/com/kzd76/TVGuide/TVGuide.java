@@ -6,13 +6,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import android.app.Activity;
-import android.app.AlarmManager;
 import android.app.Dialog;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -50,8 +51,7 @@ public class TVGuide extends Activity {
 	private static final String localLogTag = "_Main";
 	
 	private double downloadedAmount = 0;
-	
-	private PendingIntent pendingIntent;
+	private double totalData = 0;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -81,78 +81,107 @@ public class TVGuide extends Activity {
 			//startActivityForResult(new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS), 0);
 		}
 		
-		if (checkDB() > 0) {
-        	Button btn1 = (Button) findViewById(R.id.button1);
-    		Button btn2 = (Button) findViewById(R.id.button2);
-    		
-    		btn1.setOnClickListener(new View.OnClickListener() {
-    			
+		TextView ht = (TextView) findViewById(R.id.main_header);
+		if (ht != null) {
+			ht.setText("Online forgalom: " + totalData + " kB");
+		}
+		
+		LinearLayout ll = (LinearLayout) findViewById(R.id.main_layout);
+		ll.setOrientation(LinearLayout.VERTICAL);
+		
+		int channelsInDatabase = checkDB();
+		
+		if (channelsInDatabase > 0) {
+        	
+			// Top channels found in database, creating buttons for short access and ALL button to a spinner featured list screen 
+			
+			Button btnAll = new Button(this);
+			btnAll.setText("Minden adó");
+    		btnAll.setOnClickListener(new View.OnClickListener() {
     			@Override
     			public void onClick(View v) {
-    				// TODO Auto-generated method stub
     				Intent i = new Intent(TVGuide.this, EventListScreen.class);
     				i.putExtra("SpinnerVisibility", true);
+    				i.putExtra("TotalData", totalData);
     				startActivity(i);
     			}
     		});
-    		if (favChList.size() > 0) {
-    			btn2.setText(favChList.get(0).name);    		
-        		btn2.setOnClickListener(new View.OnClickListener() {
-        			
-        			@Override
-        			public void onClick(View v) {
-        				// TODO Auto-generated method stub
-        				Intent i = new Intent(TVGuide.this, EventListScreen.class);
-        				i.putExtra("SpinnerVisibility", false);
-        				i.putExtra("ChannelName", favChList.get(0).name);
-        				i.putExtra("ChannelID", favChList.get(0).id);
-        				startActivity(i);
-        			}
-        		});
-    		} else {
-    			btn2.setVisibility(View.INVISIBLE);
-    		}
     		
+    		ll.addView(btnAll);
+    		
+    		
+    		int j = 0;
+    		
+    		LinearLayout row = new LinearLayout(this);
+    		
+    		LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT);
+    		lp.weight = 1.0f;
+    		
+    		row.setOrientation(LinearLayout.HORIZONTAL);
+    		
+    		for (int i = 0; i < channelsInDatabase; i++) {
+				j++;
+				final Channel channel = favChList.get(i);
+				Button btn = new Button(this);
+				btn.setText(channel.name);
+				btn.setLines(2);
+				btn.setOnClickListener(new View.OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						Intent i = new Intent(TVGuide.this, EventListScreen.class);
+						i.putExtra("SpinnerVisibility", false);
+						i.putExtra("ChannelName", channel.name);
+						i.putExtra("ChannelID", channel.id);
+						i.putExtra("TotalData", totalData);
+						startActivityForResult(i, 0);
+					}
+				});
+				
+				row.addView(btn, lp);
+				
+				if (j == 3) {
+					j = 0;
+					ll.addView(row, lp);
+					row = new LinearLayout(this);
+					row.setOrientation(LinearLayout.HORIZONTAL);
+				}
+			}
+			
+    		if (j != 0) {
+    			ll.addView(row, lp);
+    		}
+			
         } else {
-        	// No channels were found in database starting with channel manager window
-        	// also, buttons on main screen should go invisible
+        	// No channels were found in database
+        	// TODO Create a dialog here to redirect the user to channel manager window
+        	// TODO if user selects no for download channel list redirect him/her to a new screen where "browsing" is implemented - channel groups - channels - events
+        	
         	/*
         	Intent i = new Intent(TVGuide.this, EventListScreen.class);
 			i.putExtra("SpinnerVisibility", true);
 			startActivity(i);
 			*/
-        	Button btn1 = (Button) findViewById(R.id.button1);
-    		Button btn2 = (Button) findViewById(R.id.button2);
-    		
-        	btn1.setVisibility(View.INVISIBLE);
-        	btn2.setVisibility(View.INVISIBLE);
+        	
         }
 		
-		Intent intent = new Intent(TVGuide.this, EventAlarmService.class);
-		intent.putExtra("EventTitle", "T.J. Hooker");
-		intent.putExtra("EventDescription", "RTL Klub - 22:20");
-		pendingIntent = PendingIntent.getService(TVGuide.this, 0, intent, 0);
-				
-		Button alarmBtn = new Button(this);
-		alarmBtn.setText("Alarm");
-		alarmBtn.setOnClickListener(new View.OnClickListener() {
+	}
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data){
+		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Called activity finished: " + data.toString());
+		if (resultCode == RESULT_OK){
+			Bundle bundle = data.getExtras();
+			double received = bundle.getDouble("TotalData");
+			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Received totalData=" + received);
+			totalData = totalData + received;
 			
-			@Override
-			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-				
-				Calendar cal = Calendar.getInstance();
-				cal.setTimeInMillis(System.currentTimeMillis());
-				cal.add(Calendar.SECOND, 10);
-				
-				alarmManager.set(AlarmManager.RTC, cal.getTimeInMillis(), pendingIntent);
+			TextView ht = (TextView) findViewById(R.id.main_header);
+			if (ht != null) {
+				ht.setText("Online forgalom: " + totalData + " kB");
 			}
-		});
-		
-		LinearLayout ll = (LinearLayout) findViewById(R.id.main_layout);
-		ll.addView(alarmBtn);
-		
+		}
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 	
 	private int checkDB() {
@@ -173,6 +202,21 @@ public class TVGuide extends Activity {
         		ch.name = cursor.getString(cursor.getColumnIndex(Constants.CHTABLE_CHANNEL_NAME));
         		ch.id = cursor.getString(cursor.getColumnIndex(Constants.CHTABLE_CHANNEL_ID));
         		ch.refreshdate = cursor.getLong(cursor.getColumnIndex(Constants.CHTABLE_DATE_NAME));
+        		String temp = cursor.getString(cursor.getColumnIndex(Constants.CHTABLE_OFFLINE_MARKER));
+        		if (Constants.CHTABLE_OFFLINE_TRUE.equals(temp)) {
+        			ch.offline = true;
+        		} else {
+        			ch.offline = false;
+        		}
+        		
+        		byte[] bb = cursor.getBlob(cursor.getColumnIndex(Constants.CHTABLE_CHANNEL_IMAGE));
+				if ((bb != null) && (bb.length > 0)) {
+					Bitmap image = BitmapFactory.decodeByteArray(bb, 0, bb.length);
+					ch.image = image;
+				} else {
+					ch.image = null;
+				}
+        		
         		favChList.add(ch);
         		Log.d(Constants.LOG_MAIN_TAG + localLogTag, ch.toString());
         	} while (cursor.moveToNext());
@@ -305,6 +349,8 @@ public class TVGuide extends Activity {
 				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Thread finished");
 				dismissDialog(PROGRESS_DIALOG);
 				Toast.makeText(TVGuide.this, "A mûsorújság frissítése megtörtént", Toast.LENGTH_SHORT).show();
+				totalData = totalData + downloadedAmount;
+				downloadedAmount = 0;
 				sendBroadcast(new Intent(TVGuideWidget.ACTION_UPDATE));
 			}
 			if (ChannelDataRefreshTread.PROGRESS_BAR_CHANNEL_MSG.equals(target)){
@@ -314,7 +360,7 @@ public class TVGuide extends Activity {
 					Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Channel data received, passing data to database");
 					storeChannelData(cd);
 				}
-			}
+			}			
 		}
 	};
 	
