@@ -61,10 +61,9 @@ public final class R {
         public static final int widgettop=0x7f080020;
         public static final int widgettopchannel=0x7f080021;
         public static final int widgettoptext=0x7f080022;
-        public static final int yesnodialog_buttonNo=0x7f08002a;
-        public static final int yesnodialog_buttonYes=0x7f080029;
-        public static final int yesnodialog_text=0x7f080028;
-        public static final int yesnodialog_title=0x7f080027;
+        public static final int yesnodialog_buttonNo=0x7f080029;
+        public static final int yesnodialog_buttonYes=0x7f080028;
+        public static final int yesnodialog_text=0x7f080027;
     }
     public static final class layout {
         public static final int channel=0x7f030000;

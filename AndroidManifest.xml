@@ -15,6 +15,7 @@
         <activity android:name=".ChannelManager" android:label="@string/app_name"></activity>
         <activity android:name=".PreferencesScreen" android:label="@string/app_name"></activity>
         <activity android:name=".AllCurrentOfflineEventsScreen" android:label="@string/app_name"></activity>
+        <activity android:name=".YesNoDialog" android:label="@string/app_name" android:excludeFromRecents="true" android:theme="@android:style/Theme.Dialog"></activity>
         
         
 	    <receiver android:name="TVGuideWidget">

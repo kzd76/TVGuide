@@ -39,6 +39,8 @@ public class EventListScreen extends ListActivity {
 	
 	private static final String localLogTag = "_EventListScreen";
 	
+	private static final int YESNODIALOG_ACTIVITY = 0;
+	
 	private ArrayList<ChannelEvent> events = null;
 	private ChannelEventAdapter adapter;
 	private Runnable viewOnlineEvents;
@@ -251,6 +253,36 @@ public class EventListScreen extends ListActivity {
     	finish();
     }
     
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+    	if (requestCode == YESNODIALOG_ACTIVITY) {
+    		
+    		String[] extra = data.getStringArrayExtra("Extra");
+    		String header = extra[0];
+    		String target = extra[1];
+    		String startTime = extra[2];
+    		
+    		try {
+        		
+        		EventData ed = WebDataProcessor.processEventData(header, target, tvprefs.isDownloadOnlineImages());
+        		
+        		Message msg = handler.obtainMessage();
+            	Bundle b = new Bundle();
+            	
+            	b.putString("Id", "EventData");
+            	b.putInt("EventData", ed.getDataLength());
+            	msg.setData(b);
+            	handler.sendMessage(msg);
+        		
+        		followTarget(ed, startTime);
+        	} catch (Exception e) {
+        		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Error while collecting event data from the WEB");
+        		e.printStackTrace();
+        	}
+    	}
+    	super.onActivityResult(requestCode, resultCode, data);
+    }
+    
     private void getChannelEvents(String channelId, int dayId ){
     	final String channel = channelId;
     	final int day = dayId;
@@ -388,24 +420,30 @@ public class EventListScreen extends ListActivity {
     };
     
     private void followTargetOnline(String header, String target, String startTime) {
-    	try {
-    		
-    		EventData ed = WebDataProcessor.processEventData(header, target, tvprefs.isDownloadOnlineImages());
-    		
-    		Message msg = handler.obtainMessage();
-        	Bundle b = new Bundle();
-        	
-        	b.putString("Id", "EventData");
-        	b.putInt("EventData", ed.getDataLength());
-        	msg.setData(b);
-        	handler.sendMessage(msg);
-    		
-    		followTarget(ed, startTime);
-    	} catch (Exception e) {
-    		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Error while collecting event data from the WEB");
-    		e.printStackTrace();
+    	if ((!tvprefs.isEventsRestrictedWhenOffline()) && (tvprefs.isOnlineEnabled())){
+    		try {
+        		EventData ed = WebDataProcessor.processEventData(header, target, tvprefs.isDownloadOnlineImages());
+        		Message msg = handler.obtainMessage();
+            	Bundle b = new Bundle();
+            	b.putString("Id", "EventData");
+            	b.putInt("EventData", ed.getDataLength());
+            	msg.setData(b);
+            	handler.sendMessage(msg);
+        		followTarget(ed, startTime);
+        	} catch (Exception e) {
+        		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Error while collecting event data from the WEB");
+        		e.printStackTrace();
+        	}
+    	} else {
+    		String [] extra = {header, target, startTime};
+	    	Intent i = new Intent(EventListScreen.this, YesNoDialog.class);
+			i.putExtra("Title","Csak online elérhetõ tartalom");
+			i.putExtra("Text","A tartalom eléréséhez adatkapcsolatra van szükség. Folytassuk?");
+			i.putExtra("Cancellable", false);
+			i.putExtra("Extra", extra);
+			startActivityForResult(i, YESNODIALOG_ACTIVITY);
     	}
-    }
+	}
     
     private void followTarget(EventData ed, String startTime) {
     	try{
@@ -606,8 +644,8 @@ public class EventListScreen extends ListActivity {
         						
         						// Event data from database is null, event may has link for details to follow
         						
-        						if ((em.length() > 0) && (!tvprefs.isEventsRestrictedWhenOffline()) && (tvprefs.isOnlineEnabled())){
-    								final String header = en;
+        						if (em.length() > 0) {
+        							final String header = en;
         	        				final String target = em;
         	        				iv.setImageResource(R.drawable.information_bw);
         	        				iv.setClickable(true);
@@ -626,8 +664,8 @@ public class EventListScreen extends ListActivity {
         					
         					// Event data from database is null, event may has link for details to follow
         					
-        					if ((em.length() > 0) && (!tvprefs.isEventsRestrictedWhenOffline()) && (tvprefs.isOnlineEnabled())) {
-        						final String header = en;
+        					if (em.length() > 0) {
+    							final String header = en;
     	        				final String target = em;
     	        				iv.setImageResource(R.drawable.information_bw);
     	        				iv.setClickable(true);

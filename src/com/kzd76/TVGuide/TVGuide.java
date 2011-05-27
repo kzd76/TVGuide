@@ -42,6 +42,9 @@ public class TVGuide extends Activity {
 	
 	private static final int PROGRESS_DIALOG = 0;
 	
+	private static final int EVENTLISTSCREEN_ACTIVITY = 0;
+	private static final int YESNODIALOG_ACTIVITY = 1;
+	
 	private ArrayList<Channel> favChList;
 	
 	private DataTrafficProgressDialog progress = null;
@@ -134,7 +137,7 @@ public class TVGuide extends Activity {
 						i.putExtra("ChannelName", channel.name);
 						i.putExtra("ChannelID", channel.id);
 						i.putExtra("TotalData", totalData);
-						startActivityForResult(i, 0);
+						startActivityForResult(i, EVENTLISTSCREEN_ACTIVITY);
 					}
 				});
 				
@@ -168,18 +171,32 @@ public class TVGuide extends Activity {
 	}
 	
 	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data){
-		Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Called activity finished: " + data.toString());
-		if (resultCode == RESULT_OK){
-			Bundle bundle = data.getExtras();
-			double received = bundle.getDouble("TotalData");
-			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Received totalData=" + received);
-			totalData = totalData + received;
-			
-			TextView ht = (TextView) findViewById(R.id.main_header);
-			if (ht != null) {
-				ht.setText("Online forgalom: " + totalData + " kB");
+	protected void onActivityResult(int requestCode, int resultCode, Intent data){
+		switch (requestCode){
+		case EVENTLISTSCREEN_ACTIVITY:
+			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Eventlist activity finished.");
+			if (resultCode == RESULT_OK) {
+				Bundle bundle = data.getExtras();
+				double received = bundle.getDouble("TotalData");
+				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Received totalData=" + received);
+				totalData = totalData + received;
+				
+				TextView ht = (TextView) findViewById(R.id.main_header);
+				if (ht != null) {
+					ht.setText("Online forgalom: " + totalData + " kB");
+				}
 			}
+			break;
+		case YESNODIALOG_ACTIVITY:
+			Log.d(Constants.LOG_MAIN_TAG + localLogTag, "YesNoDialog activity finished.");
+			if (resultCode == RESULT_OK) {
+				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "Yes was selected.");
+			} else {
+				Log.d(Constants.LOG_MAIN_TAG + localLogTag, "No was selected.");
+			}
+			break;
+		default:
+			break;
 		}
 		super.onActivityResult(requestCode, resultCode, data);
 	}
@@ -289,8 +306,11 @@ public class TVGuide extends Activity {
 	private void getAboutWindow() {
 		// TODO Auto-generated method stub
 		//sendBroadcast(new Intent(TVGuideWidget.ACTION_UPDATE));
-		Intent i = new Intent(TVGuide.this, AllCurrentOfflineEventsScreen.class);
-		startActivity(i);
+		Intent i = new Intent(TVGuide.this, YesNoDialog.class);
+		i.putExtra("Title","Csak online elérhetõ tartalom");
+		i.putExtra("Text","A tartalom eléréséhez adatkapcsolatra van szükség. Folytassuk?");
+		i.putExtra("Cancellable", false);
+		startActivityForResult(i, YESNODIALOG_ACTIVITY);
 	}
 
 	private void getChannelsWindow() {
